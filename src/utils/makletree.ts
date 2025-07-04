@@ -174,7 +174,7 @@ function zeros(i: number): bigint {
     }
 }
 
-async function GetPathFromIndex(index: number) {
+export async function GetPathFromIndex(index: number) {
     await initPoseidon(); // Make sure Poseidon is ready
     const babyjub = await circomlibjs.buildBabyjub();
     const F = babyjub.F;
@@ -225,7 +225,7 @@ async function GetPathFromIndex(index: number) {
 
 };
 
-async function CreateCommitment(secretNullifier: bigint, address: bigint, vote: bigint, secret: bigint) {
+export async function CreateCommitment(secretNullifier: bigint, address: bigint, vote: bigint, secret: bigint) {
     await initPoseidon(); // Make sure Poseidon is ready
     const babyjub = await circomlibjs.buildBabyjub();
     const F = babyjub.F;
@@ -241,4 +241,3 @@ async function CreateCommitment(secretNullifier: bigint, address: bigint, vote: 
     };
 };
 
-CreateCommitment(BigInt("456"), BigInt("272631572832604088006640318881740354409054456694"), BigInt("1"), BigInt("789"))
