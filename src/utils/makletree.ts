@@ -1,5 +1,5 @@
 
-import * as circomlibjs from "circomlibjs";
+const circomlibjs = require("circomlibjs");
 
 let poseidon: any;
 
@@ -26,12 +26,8 @@ function buildMerkleTree(leaves: bigint[]): [bigint[][], number] {
         const nextLevel: bigint[] = [];
         for (let i = 0; i < currentLevel.length; i += 2) {
             const left = currentLevel[i];
-            console.log("left", left);
             const right = currentLevel[i + 1] ?? zeros(level); // duplicate last if odd
-            console.log("right", right);
             nextLevel.push(hash(left, right));
-            console.log("/n");
-            console.log("hash", nextLevel[nextLevel.length - 1]);
         }
         tree.push(nextLevel);
         level++;
@@ -65,7 +61,7 @@ function getMerkleProof(tree: bigint[][], index: number) {
 }
 function normalizeProof(proof: { sibling: bigint; isLeft: boolean }[], root: bigint, levels: number) {
     const pathElements: string[] = [];
-    const pathIndices: number[] = [];
+    const pathIndices: string[] = [];
 
     for (const { sibling, isLeft } of proof) {
         let siblingBigInt: bigint;
@@ -74,13 +70,13 @@ function normalizeProof(proof: { sibling: bigint; isLeft: boolean }[], root: big
 
 
         pathElements.push(siblingBigInt.toString());
-        pathIndices.push(isLeft ? 1 : 0);
+        pathIndices.push(isLeft ? '1' : '0');
     }
     let current = root;
     for (let i = levels; i < 20; i++) {
         current = hash(current, zeros(i));
         pathElements.push(zeros(i).toString());
-        pathIndices.push(0);
+        pathIndices.push('0');
     }
 
 
@@ -178,35 +174,71 @@ function zeros(i: number): bigint {
     }
 }
 
-(async () => {
+async function GetPathFromIndex(index: number) {
     await initPoseidon(); // Make sure Poseidon is ready
     const babyjub = await circomlibjs.buildBabyjub();
     const F = babyjub.F;
-    const rawLeaves: bigint[] = [
-        BigInt("9544268642844573704226647894835027779097887973385979818262426097926729903982"),
-        BigInt("5581525453447415493315491882928005573898416079263491592050413242111209948978"),
-        BigInt("21879835473289089405366633954264833758077734612338952786509573456282948697519"),
-    ];
-
-    const [tree, levels] = buildMerkleTree(rawLeaves);
-    const root = tree[tree.length - 1][0];
-    console.log("Root:", root.toString());
-    console.log("Levels:", levels);
-
-    const index = 1;
-    const proof = getMerkleProof(tree, index);
-    console.log("Proof for leaf", index, ":", proof);
+    const rawLeaves: bigint[] = [];
 
 
-    const circomProof = normalizeProof(proof, root, levels);
+    // fix the fecth URL to your API endpoint
+    try {
+        const response = await fetch("http://localhost:3000/api/dbtree", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
 
-    console.log("Circom proof format:");
-    console.log("leaf:", rawLeaves[index].toString());
-
-    console.log("final root:", circomProof.current.toString());
-    console.log("pathElements:", circomProof.pathElements);
-    console.log("pathIndices:", circomProof.pathIndices);
+        const data = await response.json();
+        console.log("Proof gotten successfully:",);
+        for (let i = 0; i < data.data.length; i++) {
+            const leaf = data.data[i];
+            rawLeaves.push(BigInt(leaf.leaf_value)); // Convert to bigint
+        }
 
 
 
-})();
+    } catch (error) {
+        console.error("Error getting data:", error);
+    }
+
+    if (index < 0 || index >= rawLeaves.length) {
+        throw new Error("Index out of bounds");
+    } else if (rawLeaves.length === 0) {
+        throw new Error("No leaves found in the database");
+    } else {
+        const [tree, levels] = buildMerkleTree(rawLeaves);
+        const root = tree[tree.length - 1][0];
+
+
+
+        const proof = getMerkleProof(tree, index);
+
+
+        const circomProof = normalizeProof(proof, root, levels);
+
+
+        return circomProof;
+    }
+
+
+};
+
+async function CreateCommitment(secretNullifier: bigint, address: bigint, vote: bigint, secret: bigint) {
+    await initPoseidon(); // Make sure Poseidon is ready
+    const babyjub = await circomlibjs.buildBabyjub();
+    const F = babyjub.F;
+
+    const nullifierHash = poseidon([secretNullifier, address]);
+    const commitment = poseidon([nullifierHash, vote, secret]);
+
+    console.log("nullifierHash:", F.toString(nullifierHash));
+    console.log("mycommitment:", F.toString(commitment));
+    return {
+        nullifierHash: F.toString(nullifierHash),
+        commitment: F.toString(commitment)
+    };
+};
+
+CreateCommitment(BigInt("456"), BigInt("272631572832604088006640318881740354409054456694"), BigInt("1"), BigInt("789"))

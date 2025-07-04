@@ -62,6 +62,8 @@ const FormA = () => {
         } catch (error) {
             console.error("Verification error:", error);
             setVerificationResult(false);
+            setLoading(false);
+
         }
         setLoading(false);
     };
@@ -102,81 +104,7 @@ const FormA = () => {
         }
     };
 
-    const handlesumitx = async (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        const grothInput = {
-            "root": "858598410922538527645468714695245647709074444307119415446401621921188130826",
-            "secretNullifier": "456",
-            "address": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-            "vote": "1",
-            "secret": "789",
-            "nullifierHash": "21722496458489112093414803228554251805332267507751634458902680792396968264905",
-            "pathElements": [
-                "5581525453447415493315491882928005573898416079263491592050413242111209948978",
-                "1861686570734153038141835322989878516973043011574243984764688488465879742244",
-                "16731048699270784421706570066001991137631760108429146124137121216236553054391",
-                "16538499595934659613727544616962797785338492501618747306146816584688577735208",
-                "9080356992685742511681529878226919830400349732756896631827555189762739734491",
-                "5424144409132066577541240512439621178657103249409002506486103738618538352024",
-                "10544296693406531387206535330554893730829540929428087193592756592216676445216",
-                "7564988964993902948097824678805225006987812851830016626680599597402005451957",
-                "12169719382686741916580483745316623687880402026431235449348059358607961733224",
-                "8406940278843123175743832327158906184461007565351952961240403202786066254437",
-                "18095170724440081982596227705073746612735437036256299083752673311093685115565",
-                "12494921685926131790120916419089462187828486801312615440551414562915682918055",
-                "10982166978621049276500916207228131554783228711662971846611531133859682131754",
-                "20706006017932272733008726576435564635242694158389807366729547655972642914556",
-                "12387411678914679768595095911604733054258673148265834445738162148229762835545",
-                "4645457020147420961926028699764295047993990626023916925718742337202088609186",
-                "20031172315068130033417068040619844856054469898708347831004393380441627976110",
-                "10706546104333770657460492059417658198254511559412115282441046503143202741181",
-                "11849011169801684430469139138252284578555021442080969739652766930478906494558",
-                "3314372264187560584702178823305973219176593083766293720214567837146802335937"
-            ],
-            "pathIndices": [
-                "0",
-                "0",
-                "0",
-                "0",
-                "0",
-                "0",
-                "0",
-                "0",
-                "0",
-                "0",
-                "0",
-                "0",
-                "0",
-                "0",
-                "0",
-                "0",
-                "0",
-                "0",
-                "0",
-                "0"
-            ]
-        };
 
-        const wasmPath = "/zkFiles/withdraw.wasm";
-        const zkeyPath = "/zkFiles/withdraw_final.zkey";
-        const vkeyPath = "/zkFiles/verification_key.json";
-
-
-        console.log("Generated proof:x");
-        const fullProof = await genProof_browser(grothInput, wasmPath, zkeyPath);
-        console.log("Generated proof:", fullProof);
-        const resp = await fetch(vkeyPath);
-        const text = await resp.text();
-        const vKey = JSON.parse(text)
-
-        const res = await verifyProof(vKey, fullProof);
-        setVerificationResult(res);
-        console.log("Proof verification result:", res);
-        if (res) {
-            setVProof(fullProof.proof);
-            setVPublicSignals(fullProof.publicSignals);
-        }
-    }
     const handleFileUpload = async (
         event: React.ChangeEvent<HTMLInputElement>,
         type: "proof" | "publicSignals"
@@ -201,59 +129,74 @@ const FormA = () => {
     return (
         <form className="space-y-4  ">
 
+            {/* Upload Proof */}
             <div>
-                <label className="block font-medium mb-1">Upload Proof (.json)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Upload Proof (.json)
+                </label>
                 <input
                     type="file"
                     accept=".json"
                     onChange={(e) => handleFileUpload(e, "proof")}
-                    className="block w-full border p-2 rounded"
+                    className="block w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
             </div>
 
+            {/* Upload Public Signals */}
             <div>
-                <label className="block font-medium mb-1">Upload Public Data (.json)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Upload Public Data (.json)
+                </label>
                 <input
                     type="file"
                     accept=".json"
                     onChange={(e) => handleFileUpload(e, "publicSignals")}
-                    className="block w-full border p-2 rounded"
+                    className="block w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
             </div>
 
-            <div className="mt-4 text-sm">
-                <div>✅ Proof loaded: {proof ? "Yes" : "No"}</div>
-                <div>✅ Public data loaded: {publicSignals ? "Yes" : "No"}</div>
+            {/* Status Indicator */}
+            <div className="text-sm text-gray-700 space-y-1">
+                <div>✅ Proof loaded: <span className={proof ? "text-green-600 font-semibold" : "text-red-500"}>{proof ? "Yes" : "No"}</span></div>
+                <div>✅ Public data loaded: <span className={publicSignals ? "text-green-600 font-semibold" : "text-red-500"}>{publicSignals ? "Yes" : "No"}</span></div>
             </div>
+
+            {/* Verify Button */}
             <button
+                type="button"
                 onClick={handleVerify}
                 disabled={loading}
-                className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded disabled:opacity-50"
+                className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-md"
             >
-                {loading ? "Verifying..." : "Verify Proof"}
+                {loading ? "Verifying..." : "🔍 Verify Proof"}
             </button>
-            <button
-                onClick={handlesumitx}
-                disabled={loading}
-                className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded disabled:opacity-50"
-            >
-                {loading ? "Verifying..." : "xVerify Proofx"}
-            </button>
+
+            {/* Save Button + Status */}
+            {verificationResult === true && (
+                <>
+                    <button
+                        type="button"
+                        onClick={handleSaveToDatabase}
+                        className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-md"
+                    >
+                        ✅ Save to Database
+                    </button>
+
+                    {/* Send Button */}
+                    <button
+                        //onClick={handleSendProof}
+                        className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl shadow-md transition-all"
+                    >
+                        🚀 Send
+                    </button>
+                </>
+            )}
+
             {verificationResult !== null && (
-                <div className={`mt-2 font-semibold ${verificationResult ? "text-green-600" : "text-red-600"}`}>
+                <div className={`text-center text-sm font-semibold ${verificationResult ? "text-green-600" : "text-red-600"}`}>
                     {verificationResult ? "✅ Proof is valid!" : "❌ Invalid proof"}
                 </div>
             )}
-            {/* Show this only if the proof is valid */}
-            {verificationResult === true && (
-                <button
-                    onClick={handleSaveToDatabase}
-                    className="mt-4 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded"
-                >
-                    Save to Database
-                </button>
-            )}
-
 
         </form>
     );

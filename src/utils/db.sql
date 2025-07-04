@@ -22,6 +22,34 @@ CREATE TABLE publicdata_table (
     proof_table_id INTEGER NOT NULL REFERENCES proof_table(id) ON DELETE CASCADE
 );
 
+-- Table 2: publicdata_table with large numeric fields
+CREATE TABLE makletree_commitments_table (
+    id SERIAL PRIMARY KEY,
+    commitment NUMERIC NOT NULL,
+    proof_table_id INTEGER NOT NULL REFERENCES proof_table(proposal_id) ON DELETE CASCADE
+);
+/**
+WE NEED TI CHANGE NUMBERIC DATAS BY TEXT
+*/
+CREATE TABLE makletree_leaves_table (
+    id SERIAL PRIMARY KEY,
+    tree_id INTEGER NOT NULL,
+    leaf_index INTEGER NOT NULL,    
+    leaf_value TEXT NOT NULL       
+
+    UNIQUE (tree_id, leaf_index)
+);
+
+INSERT INTO makletree_leaves_table (tree_id, leaf_index, leaf_value)
+VALUES (1, 0, '9544268642844573704226647894835027779097887973385979818262426097926729903982'),
+  (1, 1, '5581525453447415493315491882928005573898416079263491592050413242111209948978'),
+  (1, 2, '21879835473289089405366633954264833758077734612338952786509573456282948697519');
+
+SELECT leaf_index, leaf_value
+FROM makletree_leaves_table
+WHERE tree_id = 1
+ORDER BY leaf_index ASC;
+
 
 INSERT INTO publicdata_table (nullfier, vote, proof_table_id) VALUES (100, 200, 1);
 INSERT INTO proof_table (proposal_id, field1, field2, field3, field4, field5, field6, field7, field8, Transation_hash, sended) VALUES (10, 20, 30, 40, 50, 60, 70, 80, 11, 'sds2', FALSE);

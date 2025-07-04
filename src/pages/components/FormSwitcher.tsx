@@ -12,16 +12,16 @@ const FormSwitcher = () => {
     };
 
     return (
-        <div className="max-w-md mx-auto mt-10 p-6 border rounded-2xl shadow-xl bg-white">
+        <div className="max-w-xl  mx-auto mt-10 p-6 border rounded-2xl shadow-xl bg-white">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">
-                    {activeForm === "A" ? "Upload ZK Proof " : "Form B"}
+                    {activeForm === "A" ? "Upload ZK Proof " : "Create and verify ZK Proof"}
                 </h2>
                 <button
                     onClick={toggleForm}
                     className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded"
                 >
-                    Switch to {activeForm === "A" ? "Form B" : "Form A"}
+                    {activeForm === "A" ? "Create" : "Upload"}
                 </button>
             </div>
 
