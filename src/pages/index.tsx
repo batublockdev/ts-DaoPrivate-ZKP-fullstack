@@ -1,10 +1,13 @@
 import ZkForm from "./components/form";
-import FormSwitcher from "./components/FormSwitcher";
+import Homex from "./components/Home";
+import { useState } from "react";
+
 export default function Home() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
     <div>
-      <h1 className="text-3xl font-bold text-center my-8">ZK Proof Verification</h1>
-      <FormSwitcher />
+      <Homex />
     </div>
   );
 }

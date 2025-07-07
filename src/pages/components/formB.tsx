@@ -109,8 +109,8 @@ const FormB = () => {
         };
         console.log("Groth input:", grothInput);
 
-        const wasmPath = "/zkFiles/withdraw.wasm";
-        const zkeyPath = "/zkFiles/withdraw_final.zkey";
+        const wasmPath = "/zkFiles/voting.wasm";
+        const zkeyPath = "/zkFiles/voting_final.zkey";
         const vkeyPath = "/zkFiles/verification_key.json";
 
 

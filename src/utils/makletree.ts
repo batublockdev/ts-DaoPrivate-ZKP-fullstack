@@ -225,19 +225,31 @@ export async function GetPathFromIndex(index: number) {
 
 };
 
-export async function CreateCommitment(secretNullifier: bigint, address: bigint, vote: bigint, secret: bigint) {
+export async function CreateCommitment(username: string, vote: string, secret: string) {
     await initPoseidon(); // Make sure Poseidon is ready
     const babyjub = await circomlibjs.buildBabyjub();
     const F = babyjub.F;
+    const usernameBigInt = BigInt(
+        "0x" + Buffer.from(username).toString("hex")
+    );
+    const secretBigInt = BigInt(
+        "0x" + Buffer.from(secret).toString("hex")
+    );
+    const voteBigInt = BigInt(vote);
+    // Hash the username and password to make it safer
+    const usernameHash = poseidon([usernameBigInt]);
+    const secretHash = poseidon([secretBigInt]);
 
-    const nullifierHash = poseidon([secretNullifier, address]);
-    const commitment = poseidon([nullifierHash, vote, secret]);
+    const nullifierHash = poseidon([secretHash, usernameHash]);
+    const commitment = poseidon([nullifierHash, voteBigInt, secretHash]);
 
     console.log("nullifierHash:", F.toString(nullifierHash));
     console.log("mycommitment:", F.toString(commitment));
     return {
         nullifierHash: F.toString(nullifierHash),
-        commitment: F.toString(commitment)
+        commitment: F.toString(commitment),
+        username: F.toString(usernameHash),
+        secret: F.toString(secretHash)
     };
 };
 

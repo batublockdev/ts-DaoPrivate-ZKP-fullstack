@@ -42,8 +42,8 @@ const FormA = () => {
         setLoading(true);
         try {
 
-            const wasmPath = "/zkFiles/withdraw.wasm";
-            const zkeyPath = "/zkFiles/withdraw_final.zkey";
+            const wasmPath = "/zkFiles/voting.wasm";
+            const zkeyPath = "/zkFiles/voting_final.zkey";
             const vkeyPath = "/zkFiles/verification_key.json";
 
             //const fullProof = await genProof_browser(grothInput, wasmPath, zkeyPath);
