@@ -1,5 +1,6 @@
 // components/FormSwitcher.tsx
 import React from "react";
+import { useRouter } from "next/router";
 
 
 interface ProposalInfo {
@@ -38,18 +39,25 @@ const ProposalCard = ({
     onVote,
 }: {
     proposal: ProposalInfo;
-    onVote: (vote: "yes" | "no" | "abstain") => void;
+    onVote: (vote: "1" | "0" | "2") => void;
 }) => {
     const totalVotes = proposal.votes.yes + proposal.votes.no + proposal.votes.abstain || 1;
     const yesPercent = (proposal.votes.yes / totalVotes) * 100;
     const noPercent = (proposal.votes.no / totalVotes) * 100;
     const abstainPercent = (proposal.votes.abstain / totalVotes) * 100;
+    const router = useRouter();
 
 
 
     return (
-        <div className="w-[90%] min-h-[70vh] mx-auto p-10 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800">
-            <div className="flex justify-between items-start mb-4">
+        <div className="relative w-[80%] min-h-[70vh] mx-auto p-10 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800">
+            <button
+                onClick={() => router.back()}
+                className="absolute top-4 left-4 text-sm text-blue-600 dark:text-blue-400 hover:underline bg-transparent "
+            >
+                Back
+            </button>
+            <div className="flex justify-between items-start mb-4 mt-4">
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{proposal.title}</h2>
                 <span
                     className={`text-xs font-medium px-3 py-1 rounded-full ${statusColors[proposal.status]}`}
@@ -69,19 +77,19 @@ const ProposalCard = ({
             {proposal.status === "Voting" && (
                 <div className="flex flex-wrap gap-4 mt-4">
                     <button
-                        onClick={() => onVote("yes")}
+                        onClick={() => onVote("1")}
                         className="text-base px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-md"
                     >
                         Vote Yes
                     </button>
                     <button
-                        onClick={() => onVote("no")}
+                        onClick={() => onVote("0")}
                         className="text-base px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-md"
                     >
                         Vote No
                     </button>
                     <button
-                        onClick={() => onVote("abstain")}
+                        onClick={() => onVote("2")}
                         className="text-base px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-md"
                     >
                         Abstain
@@ -104,7 +112,6 @@ const ProposalCard = ({
                 {proposal.status === "Voting" && "Voting is private until the reveal phase."}
                 {proposal.status === "Revealing" && "Votes are being revealed. Results will be visible soon."}
             </p>
-
 
         </div>
     );

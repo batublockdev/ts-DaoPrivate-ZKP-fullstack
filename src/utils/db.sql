@@ -13,6 +13,14 @@ CREATE TABLE proof_table (
     Transation_hash TEXT NOT NULL,
     sended BOOLEAN NOT NULL DEFAULT FALSE
 );
+--- USERS TABLE
+CREATE TABLE proof_table (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL
+);
+
 
 -- Table 2: publicdata_table with large numeric fields
 CREATE TABLE publicdata_table (

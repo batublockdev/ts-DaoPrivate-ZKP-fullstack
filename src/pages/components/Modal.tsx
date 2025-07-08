@@ -5,7 +5,7 @@ import { CreateCommitment } from "../../utils/makletree"; // Adjust the import p
 
 interface SendModalProps {
     isOpen: boolean;
-
+    vote: string;
     onClose: () => void;
 }
 
@@ -17,7 +17,7 @@ const steps = [
 ];
 
 
-export default function SendModal({ isOpen, onClose }: SendModalProps) {
+export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
     const [currentStep, setCurrentStep] = useState(0);
     const [CommitmentData, setCommitmentData] = useState<{ Commiment: string; Nullfier: string }>({ Nullfier: "", Commiment: "" });
     const [InputDB, setInputDB] = useState<{ root: string; username: string; password: string; vote: string; Nullfier: string; pathElements: string[]; pathIndices: string[] }>({ root: "", username: "", password: "", vote: "", Nullfier: "", pathElements: [], pathIndices: [] });
@@ -79,13 +79,14 @@ export default function SendModal({ isOpen, onClose }: SendModalProps) {
             return;
         }
         setError("");
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
 
 
         const updatedInputDB = {
             root: "",
-            username: "bmosqueramor",
+            username: user.id,
             password: password,
-            vote: "1",
+            vote: vote,
             Nullfier: "",
             pathElements: [],
             pathIndices: []

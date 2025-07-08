@@ -230,7 +230,7 @@ export async function CreateCommitment(username: string, vote: string, secret: s
     const babyjub = await circomlibjs.buildBabyjub();
     const F = babyjub.F;
     const usernameBigInt = BigInt(
-        "0x" + Buffer.from(username).toString("hex")
+        username
     );
     const secretBigInt = BigInt(
         "0x" + Buffer.from(secret).toString("hex")

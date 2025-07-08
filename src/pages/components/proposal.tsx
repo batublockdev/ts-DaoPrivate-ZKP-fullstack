@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 export default function Page() {
     const [showModal, setShowModal] = useState(false);
+    const [vote, setVote] = useState<"1" | "0" | "2">("1"); // 1 for yes, 0 for no, 2 for abstain
 
 
     const router = useRouter();
@@ -42,7 +43,7 @@ export default function Page() {
         title: "ZK Treasury Funding",
         description: "Commit 1000 DAI to ZK privacy research.",
         proposer: "0x1234...abcd",
-        status: "Revealing", // or Revealing / Succeeded
+        status: "Voting", // or Revealing / Succeeded
         createdAt: "2025-07-06",
         deadline: "2025-07-10",
         votes: {
@@ -53,14 +54,15 @@ export default function Page() {
     });
 
 
-    const handleVote = (vote: "yes" | "no" | "abstain") => {
+    const handleVote = (vote: "1" | "0" | "2") => {
+        setVote(vote);
         setShowModal(true);
     };
 
     return (
         <div className="p-4">
             <ProposalCard proposal={proposal} onVote={handleVote} />
-            <SendModal isOpen={showModal} onClose={() => setShowModal(false)} />
+            <SendModal isOpen={showModal} vote={vote} onClose={() => setShowModal(false)} />
 
         </div>
     );
