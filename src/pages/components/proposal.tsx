@@ -1,3 +1,4 @@
+"use client";
 import ProposalCard from "./ProposalCard";
 import SendModal from "./Modal"; // Adjust the import path as necessary
 import { useRouter } from "next/router";

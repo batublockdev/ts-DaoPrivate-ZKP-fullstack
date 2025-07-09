@@ -253,3 +253,52 @@ export async function CreateCommitment(username: string, vote: string, secret: s
     };
 };
 
+export async function GetIndex(commiment: string) {
+    await initPoseidon(); // Make sure Poseidon is ready
+    const babyjub = await circomlibjs.buildBabyjub();
+    const F = babyjub.F;
+    const commimentBigInt = BigInt(
+        commiment
+    );
+
+    const rawLeaves: bigint[] = [];
+
+
+    // fix the fecth URL to your API endpoint
+    try {
+        const response = await fetch("http://localhost:3000/api/dbtree", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
+
+        const data = await response.json();
+        console.log("Proof gotten successfully:",);
+        for (let i = 0; i < data.data.length; i++) {
+            const leaf = data.data[i];
+            rawLeaves.push(BigInt(leaf.leaf_value)); // Convert to bigint
+        }
+
+
+
+    } catch (error) {
+        console.error("Error getting data:", error);
+    }
+
+
+
+
+
+    const index = rawLeaves.findIndex(val => val === commimentBigInt);
+
+    if (index !== -1) {
+        console.log(`Leaf found at index: ${index}`);
+        return index;
+    } else {
+        console.log("Leaf not found in the array");
+        return null;
+    }
+
+};
+

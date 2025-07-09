@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { Providers } from "../providers";
 
 export default function App({ Component, pageProps }: AppProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,7 +21,10 @@ export default function App({ Component, pageProps }: AppProps) {
       )}
 
       <main className={`${!hideLayout ? "pt-20 px-4" : ""}`}>
-        <Component {...pageProps} />
+        <Providers>
+
+          <Component {...pageProps} />
+        </Providers>
       </main>
     </>
   );

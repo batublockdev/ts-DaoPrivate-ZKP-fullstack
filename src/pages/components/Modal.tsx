@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { CreateCommitment } from "../../utils/makletree"; // Adjust the import path as necessary
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 interface SendModalProps {
     isOpen: boolean;
@@ -20,15 +21,11 @@ const steps = [
 export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
     const [currentStep, setCurrentStep] = useState(0);
     const [CommitmentData, setCommitmentData] = useState<{ Commiment: string; Nullfier: string }>({ Nullfier: "", Commiment: "" });
-    const [InputDB, setInputDB] = useState<{ root: string; username: string; password: string; vote: string; Nullfier: string; pathElements: string[]; pathIndices: string[] }>({ root: "", username: "", password: "", vote: "", Nullfier: "", pathElements: [], pathIndices: [] });
-
     const [error, setError] = useState("")
     const [currentScreen, setCurrentScreen] = useState(0);
     const [password, setPassword] = useState("");
     const [confirm, setConfirm] = useState("");
-    const [loading, setLoading] = useState(false);
-
-    const [status, setStatus] = useState<"idle" | "connecting" | "sending" | "Saving" | "success" | "error">("idle");
+    const [status, setStatus] = useState<"idle" | "connecting" | "sending" | "success" | "error">("idle");
 
     const handleClick = async () => {
         try {
@@ -38,10 +35,10 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
             setStatus("sending");
             await Send(CommitmentData);
 
-            setStatus("Saving");
-            await SaveDataDB(InputDB);
 
             setStatus("success");
+            setCurrentStep(3);
+            setCurrentScreen(3); // 👈 Go to final screen
         } catch (err: any) {
             setStatus("error");
             setError(err?.message || "Something went wrong");
@@ -54,8 +51,6 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
                 return "🔌 Connecting...";
             case "sending":
                 return "📤 Sending data...";
-            case "Saving":
-                return "📤 saving data...";
             case "success":
                 return "✅ Sent successfully!";
             case "error":
@@ -92,16 +87,12 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
             pathIndices: []
         };
         console.log(updatedInputDB);
-        setInputDB(updatedInputDB);
         setCurrentScreen(1);
         setCurrentStep(1);
         const dataCommitment = await CreateCommitment(updatedInputDB.username, updatedInputDB.vote, updatedInputDB.password)
         setCommitmentData({ Commiment: dataCommitment.commitment, Nullfier: dataCommitment.nullifierHash });
-        setInputDB((prev) => ({
-            ...prev,
-            Nullfier: dataCommitment.nullifierHash,
-        }));
-        console.log(InputDB);
+        await sleep(2000); // Wait 2 seconds
+
         setCurrentScreen(2);
         setCurrentStep(2);
 
@@ -120,13 +111,6 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
         return true;
     };
 
-    const SaveDataDB = async (data: { root: string; username: string; password: string; vote: string; Nullfier: string; pathElements: string[]; pathIndices: string[] }) => {
-        console.log("💾 Saving to DB:", data);
-        await sleep(2000); // Wait 2 seconds
-        setCurrentScreen(3);
-        setCurrentStep(3);
-        return true;
-    };
 
 
 
@@ -151,31 +135,41 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
 
                 {/* Steps */}
 
-                <ol className="flex space-x-8 justify-center items-center mb-8">
+                <ol className="flex justify-between items-center mb-8 px-8">
                     {steps.map((step, index) => (
                         <li key={index} className="flex flex-col items-center text-center">
-                            <span className={`text-3xl mb-1 ${index === currentStep ? "animate-bounce" : ""}`}>
-                                {index < currentStep ? "✅" : index === currentStep ? step.icon : "🕓"}
-                            </span>
-                            <span
-                                className={`text-sm ${index === currentStep ? "font-bold text-purple-600" : "text-gray-600 dark:text-gray-400"}`}
-                            >
-                                {step.title}
-                            </span>
+                            <div className="flex flex-col items-center">
+                                <div
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm
+            ${index < currentStep ? "bg-green-500" : index === currentStep ? "bg-blue-600 animate-pulse" : "bg-gray-300"}`}
+                                >
+                                    {index < currentStep ? "✔" : index + 1}
+                                </div>
+                                <span
+                                    className={`mt-1 text-xs ${index === currentStep ? "text-blue-600 font-semibold" : "text-gray-500"}`}
+                                >
+                                    {step.title}
+                                </span>
+                            </div>
                         </li>
                     ))}
                 </ol>
 
 
                 {/* Content */}
-                <div className="flex-1 space-y-4">
+                <div className="flex-1 flex flex-col items-center justify-center space-y-4 text-center px-4">
+
+
                     {currentScreen === 0 ? (
-                        <form onSubmit={handleSubmit} className="space-y-4 max-w-sm mx-auto">
+
+                        <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-sm flex flex-col items-center">
+                            <p className="text-gray-700 dark:text-gray-300 text-sm mt-2">Creating a paasword for your vote...</p>
+
                             <div>
                                 <label className="block mb-1 text-sm font-medium">Password</label>
                                 <input
                                     type="password"
-                                    className="w-full border px-3 py-2 rounded"
+                                    className="w-full border border-gray-300 dark:border-gray-600 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
@@ -186,7 +180,7 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
                                 <label className="block mb-1 text-sm font-medium">Confirm Password</label>
                                 <input
                                     type="password"
-                                    className="w-full border px-3 py-2 rounded"
+                                    className="w-full border border-gray-300 dark:border-gray-600 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
                                     value={confirm}
                                     onChange={(e) => setConfirm(e.target.value)}
                                     required
@@ -204,29 +198,54 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
                         </form>
                     ) : currentScreen === 1 ? (
                         <div className="flex flex-col items-center space-y-2">
-                            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                            <p className="text-blue-600 font-medium">Creating voting ticket...</p>
+                            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
+                            <p className="text-gray-700 dark:text-gray-300 text-sm mt-2">Creating your zero-knowledge ticket...</p>
                         </div>
                     ) : currentScreen === 2 ? (
+
                         <div className="space-y-3 text-center">
+                            <ConnectButton />
                             <button
                                 onClick={handleClick}
-                                disabled={status === "connecting" || status === "sending" || status === "Saving"}
-                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
+                                disabled={status === "connecting" || status === "sending"}
+                                className="w-60 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition disabled:opacity-60"
                             >
-                                {status === "idle" ? "Connect & Send" : "Processing..."}
+                                {status === "idle" ? "🔗 Send" : "⏳ Processing..."}
                             </button>
 
                             {status !== "idle" && <p className="text-sm">{renderMessage()}</p>}
+                        </div>
+
+
+                    ) : currentScreen === 3 ? (
+                        <div className="space-y-4 text-center">
+                            <div className="text-3xl">🎉</div>
+                            <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Vote Submitted!</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Your zero-knowledge vote was successfully committed. Thank you for participating in the private DAO.
+                            </p>
+                            <button
+                                onClick={() => {
+                                    onClose();
+                                    setCurrentScreen(0);
+                                    setCurrentStep(0);
+                                    setStatus("idle");
+                                    setPassword("");
+                                    setConfirm("");
+                                    setError("");
+                                }}
+                                className="mt-4 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg font-medium transition"
+                            >
+                                Close
+                            </button>
                         </div>
                     ) : null}
 
 
                 </div>
-
             </div>
-        </div>
 
+        </div >
 
     );
 }

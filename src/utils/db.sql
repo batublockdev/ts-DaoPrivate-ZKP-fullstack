@@ -13,8 +13,19 @@ CREATE TABLE proof_table (
     Transation_hash TEXT NOT NULL,
     sended BOOLEAN NOT NULL DEFAULT FALSE
 );
+-- INPUTS TABLE
+
+
+
+
+-- TABLE ROOTS PROPOSALSA ID
+CREATE TABLE roots_proposals_table (
+    id SERIAL PRIMARY KEY,
+    proposal_id NUMERIC NOT NULL,
+    roots TEXT NOT NULL
+);
 --- USERS TABLE
-CREATE TABLE proof_table (
+CREATE TABLE users_table (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     username TEXT UNIQUE NOT NULL,
@@ -60,6 +71,7 @@ ORDER BY leaf_index ASC;
 
 
 INSERT INTO publicdata_table (nullfier, vote, proof_table_id) VALUES (100, 200, 1);
+INSERT INTO users_table (id, name, username, password) VALUES (1, 'Alice', 'alice123', 'password123');
 INSERT INTO proof_table (proposal_id, field1, field2, field3, field4, field5, field6, field7, field8, Transation_hash, sended) VALUES (10, 20, 30, 40, 50, 60, 70, 80, 11, 'sds2', FALSE);
 SELECT 
     m.id AS main_id,
