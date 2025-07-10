@@ -1,48 +1,103 @@
+// pages/api/votes.ts
 import { NextApiRequest, NextApiResponse } from "next";
 import { conn } from "../../utils/database";
 
-export default async (req: NextApiRequest, res: NextApiResponse) => {
-    const { method, body } = req;
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    const { method, query, body } = req;
+
     switch (method) {
+        // 1. GET votes for a specific user or revealed
         case "GET":
             try {
-                const query = 'SELECT m.id AS main_id, m.proposal_id, m.field1, m.field2, m.field3, m.field4, m.field5, m.field6, m.field7, m.field8, m.Transation_hash,  m.sended, r.id AS related_id, r.nullfier, r.vote FROM  proof_table m JOIN  publicdata_table r ON m.id = r.proof_table_id; ';
-                const response = await conn.query(query);
+                const { user_id } = query;
 
-                return res.status(200).json({ message: "Data inserted successfully", data: response.rows });
+                if (!user_id) {
+                    return res.status(400).json({ message: "Missing user_id" });
+                }
+
+                const getVotesQuery = `
+                SELECT * FROM user_votes_table
+                WHERE user_id = $1
+              `;
+                const response = await conn.query(getVotesQuery, [user_id]);
+                return res.status(200).json({ votes: response.rows });
             } catch (error) {
-                console.error("Error inserting data:", error);
+                console.error("GET error:", error);
                 return res.status(500).json({ message: "Internal Server Error" });
             }
+
+        // 2. POST new vote
         case "POST":
             try {
-                const { proposal_id, field1, field2, field3, field4, field5, field6, field7, field8, sended, nullfier, transation_hash, vote } = body
-                const query = 'INSERT INTO proof_table (proposal_id, field1, field2, field3, field4, field5, field6, field7, field8, Transation_hash, sended) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *';
-                const values = [proposal_id, field1, field2, field3, field4, field5, field6, field7, field8, transation_hash, sended];
-                const response = await conn.query(query, values);
+                const { user_id, proposal_id, vote, reveal } = body;
 
+                if (!user_id || !proposal_id) {
+                    return res.status(400).json({ message: "Missing user_id or proposal_id" });
+                }
 
-                const query2 = 'INSERT INTO publicdata_table (nullfier, vote, proof_table_id) VALUES ($1, $2, $3) RETURNING *';
-                const values2 = [nullfier, vote, response.rows[0].id];
-                const response2 = await conn.query(query2, values2);
-                return res.status(200).json({ message: "Data inserted successfully", data: response2.rows[0] });
+                const insertVoteQuery = `
+          INSERT INTO user_votes_table (user_id, proposal_id, vote, reveal)
+          VALUES ($1, $2, $3, $4)
+          ON CONFLICT (user_id, proposal_id)
+          DO UPDATE SET vote = EXCLUDED.vote, reveal = EXCLUDED.reveal
+          RETURNING *
+        `;
+                const values = [user_id, proposal_id, vote, reveal];
+                const result = await conn.query(insertVoteQuery, values);
+
+                return res.status(200).json({ message: "Vote saved", data: result.rows[0] });
             } catch (error) {
-                console.error("Error inserting data:", error);
+                console.error("POST error:", error);
                 return res.status(500).json({ message: "Internal Server Error" });
             }
-
+        // Inside your existing switch(method) block
         case "PUT":
             try {
-                const { ids } = body
-                const query = 'UPDATE proof_table SET sended = TRUE WHERE id IN (' + ids + ') RETURNING *';
-                const response = await conn.query(query);
-                return res.status(200).json({ message: "Data inserted successfully", data: response.rows });
+                const { user_id, proposal_id, vote, reveal } = body;
+
+                if (!user_id || !proposal_id) {
+                    return res.status(400).json({ message: "Missing user_id or proposal_id" });
+                }
+
+                const updateQuery = `
+        UPDATE user_votes_table
+        SET vote = $1, reveal = $2
+        WHERE user_id = $3 AND proposal_id = $4
+        RETURNING *;
+      `;
+                const values = [vote, reveal, user_id, proposal_id];
+                const result = await conn.query(updateQuery, values);
+
+                if (result.rowCount === 0) {
+                    return res.status(404).json({ message: "Vote not found for given user_id and proposal_id" });
+                }
+
+                return res.status(200).json({ message: "Vote updated successfully", data: result.rows[0] });
             } catch (error) {
-                console.error("Error inserting data:", error);
+                console.error("PUT error:", error);
                 return res.status(500).json({ message: "Internal Server Error" });
             }
+
+        // 3. DELETE vote by proposal_id
+        case "DELETE":
+            try {
+                const { proposal_id } = body;
+
+                if (!proposal_id) {
+                    return res.status(400).json({ message: "Missing proposal_id" });
+                }
+
+                const deleteQuery = `DELETE FROM user_votes_table WHERE proposal_id = $1 RETURNING *`;
+                const result = await conn.query(deleteQuery, [proposal_id]);
+
+                return res.status(200).json({ message: "Vote deleted", data: result.rows[0] });
+            } catch (error) {
+                console.error("DELETE error:", error);
+                return res.status(500).json({ message: "Internal Server Error" });
+            }
+
         default:
             res.setHeader("Allow", ["GET", "POST", "DELETE"]);
+            res.status(405).end(`Method ${method} Not Allowed`);
     }
-
 }

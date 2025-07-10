@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { CreateCommitment } from "../../utils/makletree"; // Adjust the import path as necessary
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useConnect, useAccount, useDisconnect } from 'wagmi'
+import { injected } from 'wagmi/connectors'
+import { type UseConnectReturnType } from 'wagmi'
+
+
 
 interface SendModalProps {
     isOpen: boolean;
@@ -19,9 +23,14 @@ const steps = [
 
 
 export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
+    const { address, connector, isConnected } = useAccount();
+    const { connect, connectors, error } =
+        useConnect();
+    const { disconnect } = useDisconnect();
+
     const [currentStep, setCurrentStep] = useState(0);
     const [CommitmentData, setCommitmentData] = useState<{ Commiment: string; Nullfier: string }>({ Nullfier: "", Commiment: "" });
-    const [error, setError] = useState("")
+    const [errorx, setError] = useState("")
     const [currentScreen, setCurrentScreen] = useState(0);
     const [password, setPassword] = useState("");
     const [confirm, setConfirm] = useState("");
@@ -32,18 +41,29 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
             setStatus("connecting");
             const connected = await Connect();
 
-            setStatus("sending");
-            await Send(CommitmentData);
 
-
-            setStatus("success");
-            setCurrentStep(3);
-            setCurrentScreen(3); // 👈 Go to final screen
         } catch (err: any) {
             setStatus("error");
             setError(err?.message || "Something went wrong");
         }
     };
+    useEffect(() => {
+        console.log(isConnected);
+
+        if (isConnected === true) {
+            setStatus("sending");
+            Send(CommitmentData);
+
+
+            setStatus("success");
+            setCurrentStep(3);
+            setCurrentScreen(3); // 👈 Go to final screen
+        }
+    }, [isConnected]);
+    useEffect(() => {
+        disconnect();
+    }, []);
+
 
     const renderMessage = () => {
         switch (status) {
@@ -54,7 +74,7 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
             case "success":
                 return "✅ Sent successfully!";
             case "error":
-                return `❌ Error: ${error}`;
+                return `❌ Error: ${errorx}`;
             default:
                 return null;
         }
@@ -101,6 +121,9 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
 
     const Connect = async (): Promise<boolean> => {
         console.log("🔌 Connecting...");
+
+        await connect({ connector: injected() });
+
         await sleep(2000); // Wait 2 seconds
         return true;
     };
@@ -187,7 +210,7 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
                                 />
                             </div>
 
-                            {error && <p className="text-red-600 text-sm">{error}</p>}
+                            {errorx && <p className="text-red-600 text-sm">{errorx}</p>}
 
                             <button
                                 type="submit"
@@ -204,13 +227,13 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
                     ) : currentScreen === 2 ? (
 
                         <div className="space-y-3 text-center">
-                            <ConnectButton />
+
                             <button
                                 onClick={handleClick}
                                 disabled={status === "connecting" || status === "sending"}
                                 className="w-60 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition disabled:opacity-60"
                             >
-                                {status === "idle" ? "🔗 Send" : "⏳ Processing..."}
+                                {status === "idle" ? "🔗 Connect & Send" : "⏳ Processing..."}
                             </button>
 
                             {status !== "idle" && <p className="text-sm">{renderMessage()}</p>}
