@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { CreateCommitment } from "../../utils/makletree"; // Adjust the import path as necessary
-import { useConnect, useAccount, useDisconnect } from 'wagmi'
+import { useConnect, useDisconnect, useWatchContractEvent, useChainId, useConfig, useAccount, useWriteContract, useWaitForTransactionReceipt, } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 import { type UseConnectReturnType } from 'wagmi'
+import { chainToAddress, ContractAbi } from '../constants';
 
 
 
@@ -27,6 +28,16 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
     const { connect, connectors, error } =
         useConnect();
     const { disconnect } = useDisconnect();
+    const chainId = useChainId();
+    const config = useConfig();
+    const addressContract = chainToAddress[chainId]['address'] as `0x${string}`;
+
+    const { data: hash, isPending, writeContractAsync } = useWriteContract()
+    const { isLoading: isConfirming, isSuccess: isConfirmed, isError } = useWaitForTransactionReceipt({
+        confirmations: 1,
+        hash,
+    })
+
 
     const [currentStep, setCurrentStep] = useState(0);
     const [CommitmentData, setCommitmentData] = useState<{ Commiment: string; Nullfier: string }>({ Nullfier: "", Commiment: "" });
@@ -34,12 +45,20 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
     const [currentScreen, setCurrentScreen] = useState(0);
     const [password, setPassword] = useState("");
     const [confirm, setConfirm] = useState("");
-    const [status, setStatus] = useState<"idle" | "connecting" | "sending" | "success" | "error">("idle");
+    const [status, setStatus] = useState<"idle" | "connecting" | "sending" | "Connected" | "success" | "error">("idle");
 
     const handleClick = async () => {
         try {
-            setStatus("connecting");
-            const connected = await Connect();
+
+
+
+            if (isConnected === true) {
+                Send(CommitmentData);
+
+            } else {
+                setStatus("connecting");
+                await Connect();
+            }
 
 
         } catch (err: any) {
@@ -51,30 +70,69 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
         console.log(isConnected);
 
         if (isConnected === true) {
-            setStatus("sending");
-            Send(CommitmentData);
+            setStatus("Connected");
 
+        }
+    }, [isConnected]);
+    useEffect(() => {
+        console.log("Pass: ", isConfirmed);
+        console.log("Error: ", isError);
+        if (isError) {
+            console.error("Transaction failed:", error);
+            setStatus("error");
+            //setError(error?.message || "Transaction failed");
 
+        }
+        if (isConfirmed === true) {
+            console.log("Transaction confirmed:", hash);
+            saveDB();
             setStatus("success");
             setCurrentStep(3);
             setCurrentScreen(3); // 👈 Go to final screen
-        }
-    }, [isConnected]);
+        };
+
+    }, [isConfirmed, isError]);
     useEffect(() => {
         disconnect();
     }, []);
 
+    const saveDB = async () => {
+        try {
+            const response = await fetch("/api/usersvote", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    user_id: String(JSON.parse(localStorage.getItem("user") || "{}").user_id || ""),
+                    proposal_id: "2",
+                    vote: true,
+                    reveal: false
+                }),
+            });
 
+            if (response.ok) {
+                alert("✅ Data saved successfully!");
+            } else {
+                alert("❌ Failed to save data.");
+            }
+        } catch (error) {
+            console.error("Error saving proof:", error);
+            alert("❌ Something went wrong.");
+        }
+    }
     const renderMessage = () => {
         switch (status) {
             case "connecting":
                 return "🔌 Connecting...";
+            case "Connected":
+                return "Connected";
             case "sending":
                 return "📤 Sending data...";
             case "success":
                 return "✅ Sent successfully!";
             case "error":
-                return `❌ Error: ${errorx}`;
+                return `❌ Transaction failed`;
             default:
                 return null;
         }
@@ -130,7 +188,24 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
 
     const Send = async (data: { Commiment: string; Nullfier: string }) => {
         console.log("📤 Sending data:", data);
+        setStatus("sending");
         await sleep(2000); // Wait 2 seconds
+        try {
+            const txHash = await writeContractAsync({
+                abi: ContractAbi,
+                address: addressContract as `0x${string}`,
+                functionName: "summitVote",
+                args: [
+                    BigInt("0x9b7711a60f21741da8bf0a5b6fefe5acde8cd407f7913db4a979be32ad067eee"),
+                    BigInt(CommitmentData.Commiment)
+                ],
+            })
+            console.log("Transaction sent:", txHash)
+        } catch (err) {
+            console.error("Transaction rejected or failed to send:", err)
+        }
+
+
         return true;
     };
 
@@ -233,7 +308,7 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
                                 disabled={status === "connecting" || status === "sending"}
                                 className="w-60 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition disabled:opacity-60"
                             >
-                                {status === "idle" ? "🔗 Connect & Send" : "⏳ Processing..."}
+                                {status === "idle" ? "🔗 Connect" : status === "connecting" ? "Connecting" : status === "Connected" ? "Send" : status === "sending" ? "Sending" : status === "error" ? "Send" : null}
                             </button>
 
                             {status !== "idle" && <p className="text-sm">{renderMessage()}</p>}
