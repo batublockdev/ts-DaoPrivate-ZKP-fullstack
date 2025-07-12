@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 export default function Page() {
     const [showModal, setShowModal] = useState(false);
     const [vote, setVote] = useState<"1" | "0" | "2">("1"); // 1 for yes, 0 for no, 2 for abstain
+    const [hasVoted, sethasVoted] = useState<boolean>(false);
 
 
     const router = useRouter();
@@ -62,7 +63,7 @@ export default function Page() {
 
     return (
         <div className="p-4">
-            <ProposalCard proposal={proposal} onVote={handleVote} />
+            <ProposalCard hasVoted={hasVoted} proposal={proposal} onVote={handleVote} />
             <SendModal isOpen={showModal} vote={vote} onClose={() => setShowModal(false)} />
 
         </div>

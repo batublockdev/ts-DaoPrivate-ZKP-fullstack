@@ -1,5 +1,5 @@
 // components/FormSwitcher.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
 
@@ -37,15 +37,18 @@ const statusColors: Record<ProposalStatus, string> = {
 const ProposalCard = ({
     proposal,
     onVote,
+    hasVoted,
 }: {
     proposal: ProposalInfo;
     onVote: (vote: "1" | "0" | "2") => void;
+    hasVoted: boolean;
 }) => {
     const totalVotes = proposal.votes.yes + proposal.votes.no + proposal.votes.abstain || 1;
     const yesPercent = (proposal.votes.yes / totalVotes) * 100;
     const noPercent = (proposal.votes.no / totalVotes) * 100;
     const abstainPercent = (proposal.votes.abstain / totalVotes) * 100;
     const router = useRouter();
+
 
 
 
@@ -73,30 +76,50 @@ const ProposalCard = ({
                 <p><strong>Created:</strong> {proposal.createdAt}</p>
                 <p><strong>Deadline:</strong> {proposal.deadline}</p>
             </div>
-            {/* Voting Phase: show vote buttons only, no results */}
+            {/* Voting Phase: show vote buttons only if user hasn't voted */}
             {proposal.status === "Voting" && (
-                <div className="flex flex-wrap gap-4 mt-4">
+                <>
+                    {!hasVoted ? (
+                        <div className="flex flex-wrap gap-4 mt-4">
+                            <button
+                                onClick={() => onVote("1")}
+                                className="text-base px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-md"
+                            >
+                                Vote Yes
+                            </button>
+                            <button
+                                onClick={() => onVote("0")}
+                                className="text-base px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-md"
+                            >
+                                Vote No
+                            </button>
+                            <button
+                                onClick={() => onVote("2")}
+                                className="text-base px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-md"
+                            >
+                                Abstain
+                            </button>
+                        </div>
+                    ) : (
+                        <p className="text-sm text-yellow-600 dark:text-yellow-400 italic mt-4">
+                            You have already voted. Please wait for the reveal phase.
+                        </p>
+                    )}
+                </>
+            )}
+
+
+            {/* Revealing Phase: show Reveal button */}
+            {proposal.status === "Revealing" && hasVoted && (
+                <div className="mt-6">
                     <button
-                        onClick={() => onVote("1")}
-                        className="text-base px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-md"
+                        //onClick={onReveal}
+                        className="text-base px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
                     >
-                        Vote Yes
-                    </button>
-                    <button
-                        onClick={() => onVote("0")}
-                        className="text-base px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-md"
-                    >
-                        Vote No
-                    </button>
-                    <button
-                        onClick={() => onVote("2")}
-                        className="text-base px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-md"
-                    >
-                        Abstain
+                        Reveal My Vote
                     </button>
                 </div>
             )}
-
 
 
             {/* Final Phase: show results */}

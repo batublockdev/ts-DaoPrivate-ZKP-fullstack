@@ -51,14 +51,16 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
         try {
 
 
+            console.log(JSON.parse(localStorage.getItem("user") || "{}").id);
+            saveDB();
 
-            if (isConnected === true) {
+            /*if (isConnected === true) {
                 Send(CommitmentData);
 
             } else {
                 setStatus("connecting");
                 await Connect();
-            }
+            }*/
 
 
         } catch (err: any) {
@@ -104,8 +106,8 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    user_id: String(JSON.parse(localStorage.getItem("user") || "{}").user_id || ""),
-                    proposal_id: "2",
+                    user_id: (JSON.parse(localStorage.getItem("user") || "{}").id || ""),
+                    proposal_id: "5",
                     vote: true,
                     reveal: false
                 }),
