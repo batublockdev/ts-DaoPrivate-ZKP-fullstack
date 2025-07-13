@@ -29,33 +29,6 @@ interface Proposal {
 
 export default function HomePage() {
     const router = useRouter();
-    useEffect(() => {
-        const fetchData = async () => {
-            // your async code here, e.g.:
-            const user = JSON.parse(localStorage.getItem("user") || "{}");
-
-            const queryString = new URLSearchParams({
-                user_id: user.id,
-            }).toString();
-            const response = await fetch(`/api/usersvote?${queryString}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                }
-
-            });
-            const data = await response.json();
-            console.log("Proof gotten successfully:",);
-            console.log(data);
-        };
-
-        fetchData();
-
-
-
-
-    }, []);
-
     const [proposals, setProposals] = useState<Proposal[]>([
         {
             id: "1",
@@ -87,7 +60,43 @@ export default function HomePage() {
         },
 
     ]);
+    useEffect(() => {
+        const fetchData = async () => {
+            // your async code here, e.g.:
+            const user = JSON.parse(localStorage.getItem("user") || "{}");
 
+            const queryString = new URLSearchParams({
+                user_id: user.id,
+            }).toString();
+            const response = await fetch(`/api/usersvote?${queryString}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+
+            });
+            const data = await response.json();
+            console.log("Proof gotten successfully:",);
+            console.log(data);
+
+            const response2 = await fetch(`/api/proposals`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+
+            });
+            const datax = await response2.json();
+            console.log("Proof gotten successfully:",);
+            console.log(datax.proposals);
+        };
+
+        fetchData();
+
+
+
+
+    }, []);
     const handleSelect = (id: string) => {
         router.push({
             pathname: "proposal",         // or `/proposal/${id}`

@@ -13,7 +13,29 @@ CREATE TABLE proof_table (
     Transation_hash TEXT NOT NULL,
     sended BOOLEAN NOT NULL DEFAULT FALSE
 );
--- INPUTS TABLE
+CREATE TABLE IF NOT EXISTS proposals (
+    id TEXT PRIMARY KEY,
+    proposer TEXT NOT NULL,
+    targets TEXT[],            -- array of addresses
+    values TEXT[],             -- array of values (as strings)
+    signatures TEXT[],         -- array of function signatures
+    calldatas TEXT[],          -- array of calldata hex strings
+    description TEXT,
+    start_block BIGINT,
+    end_block BIGINT,
+    counting_start TIMESTAMP,   
+    deadline TIMESTAMP,       
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+-- User_votes table
+CREATE TABLE user_votes_table (
+    id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    proposal_id TEXT NOT NULL,
+    vote BOOLEAN NOT NULL,
+    reveal BOOLEAN NOT NULL,
+    UNIQUE (user_id, proposal_id)
+);
 
 
 

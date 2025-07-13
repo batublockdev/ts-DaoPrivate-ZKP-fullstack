@@ -1,13 +1,8 @@
 import { Pool } from 'pg';
+import dotenv from 'dotenv';
 
-let conn: any
-if (!conn) {
-    conn = new Pool({
-        user: 'me',
-        password: '123456789',
-        database: 'zkdb',
-        host: 'localhost',
-        port: 5432,
-    })
-}
-export { conn };
+dotenv.config();
+
+export const conn = new Pool({
+    connectionString: process.env.POSTGRES_URL,
+});
