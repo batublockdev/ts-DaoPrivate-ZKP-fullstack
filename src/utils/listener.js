@@ -6,7 +6,7 @@ const abi = require("./abi.json"); // Adjust the path to your ABI file
 const { Pool } = require("pg");
 
 const pool = new Pool({
-    connectionString: 'postgresql://me:123456789@localhost:5432/zkdb', // e.g., postgresql://user:pass@host:5432/dbname
+    connectionString: process.env.POSTGRES_URL, // e.g., postgresql://user:pass@host:5432/dbname
 });
 console.log("📡 Connecting URL:", process.env.RPC_URL);
 

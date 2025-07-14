@@ -10,19 +10,25 @@ interface ProposalInfo {
 
 type ProposalStatus =
     | "Pending"
-    | "Voting"
-    | "Revealing"
-    | "Succeeded"
+    | "Active"
+    | "Canceled"
     | "Defeated"
-    | "Executed";
+    | "Succeeded"
+    | "Queued"
+    | "Expired"
+    | "Executed"
+    | "Revealing";
 
 const statusColors: Record<ProposalStatus, string> = {
     Pending: "bg-yellow-100 text-yellow-800",
-    Voting: "bg-purple-100 text-purple-800",
+    Active: "bg-purple-100 text-purple-800",
     Revealing: "bg-indigo-100 text-indigo-800",
     Succeeded: "bg-green-100 text-green-800",
     Defeated: "bg-red-100 text-red-800",
     Executed: "bg-gray-100 text-gray-800",
+    Canceled: "bg-red-200 text-red-800",
+    Expired: "bg-gray-200 text-gray-600",
+    Queued: "bg-blue-100 text-blue-800",
 };
 
 interface ProposalListProps {

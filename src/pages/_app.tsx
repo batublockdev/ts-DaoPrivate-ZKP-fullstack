@@ -14,18 +14,16 @@ export default function App({ Component, pageProps }: AppProps) {
   const hideLayout = ["/components/Login", "/components/Register"].includes(router.pathname);
 
   return (
-    <>
+    <Providers>
       {!hideLayout && <Header title="DAO Voting" />}
       {!hideLayout && (
         <Sidebar isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
       )}
 
       <main className={`${!hideLayout ? "pt-20 px-4" : ""}`}>
-        <Providers>
 
-          <Component {...pageProps} />
-        </Providers>
+        <Component {...pageProps} />
       </main>
-    </>
+    </Providers>
   );
 }

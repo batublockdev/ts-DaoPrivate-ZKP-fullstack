@@ -6,12 +6,14 @@ import { useConnect, useDisconnect, useWatchContractEvent, useChainId, useConfig
 import { injected } from 'wagmi/connectors'
 import { type UseConnectReturnType } from 'wagmi'
 import { chainToAddress, ContractAbi } from '../constants';
+import { useRouter } from "next/router";
 
 
 
 interface SendModalProps {
     isOpen: boolean;
     vote: string;
+    proposalId: string | string[] | undefined;
     onClose: () => void;
 }
 
@@ -23,7 +25,8 @@ const steps = [
 ];
 
 
-export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
+export default function SendModal({ isOpen, vote, proposalId, onClose }: SendModalProps) {
+    const router = useRouter();
     const { address, connector, isConnected } = useAccount();
     const { connect, connectors, error } =
         useConnect();
@@ -51,16 +54,14 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
         try {
 
 
-            console.log(JSON.parse(localStorage.getItem("user") || "{}").id);
-            saveDB();
 
-            /*if (isConnected === true) {
+            if (isConnected === true) {
                 Send(CommitmentData);
 
             } else {
                 setStatus("connecting");
                 await Connect();
-            }*/
+            }
 
 
         } catch (err: any) {
@@ -107,7 +108,7 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
                 },
                 body: JSON.stringify({
                     user_id: (JSON.parse(localStorage.getItem("user") || "{}").id || ""),
-                    proposal_id: "5",
+                    proposal_id: proposalId,
                     vote: true,
                     reveal: false
                 }),
@@ -191,8 +192,11 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
     const Send = async (data: { Commiment: string; Nullfier: string }) => {
         console.log("📤 Sending data:", data);
         setStatus("sending");
-        await sleep(2000); // Wait 2 seconds
+        console.log("Transaction sent:11")
+
         try {
+            console.log("Transaction sent:11xx");
+
             const txHash = await writeContractAsync({
                 abi: ContractAbi,
                 address: addressContract as `0x${string}`,
@@ -206,6 +210,7 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
         } catch (err) {
             console.error("Transaction rejected or failed to send:", err)
         }
+        console.log("Transaction sent:1")
 
 
         return true;
@@ -227,6 +232,8 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
                         setCurrentScreen(0);
                         setCurrentStep(0);
                         setStatus("idle");
+                        setPassword("");
+                        setConfirm("");
                     }}
                     className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl"
                 >
@@ -333,6 +340,7 @@ export default function SendModal({ isOpen, vote, onClose }: SendModalProps) {
                                     setPassword("");
                                     setConfirm("");
                                     setError("");
+                                    router.push("Home");
                                 }}
                                 className="mt-4 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg font-medium transition"
                             >

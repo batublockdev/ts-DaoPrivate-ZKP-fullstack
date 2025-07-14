@@ -32,7 +32,7 @@ export default function Homex() {
                 </button>
 
                 <button
-                    onClick={() => router.push("components/ProposalFace")}
+                    onClick={() => router.push("/components/ProposalFace")}
                     className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg shadow transition"
                 >
                     📄 View Proposals

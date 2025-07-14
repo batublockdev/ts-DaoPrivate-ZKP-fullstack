@@ -1,83 +1,49 @@
 import { useState, useEffect } from "react";
 import ProposalList from "./proposallist";
 import { useRouter } from "next/router";
-
+import { chainToAddress, ContractAbi } from '../constants';
+import { useWatchContractEvent, useChainId, useConfig, useAccount } from 'wagmi';
+import { getEthersProvider } from '../../Ether-Wagmi';
+import { formatEther, ethers, parseEther } from 'ethers';
 type ProposalStatus =
     | "Pending"
-    | "Voting"
-    | "Revealing"
-    | "Succeeded"
+    | "Active"
+    | "Canceled"
     | "Defeated"
-    | "Executed";
+    | "Succeeded"
+    | "Queued"
+    | "Expired"
+    | "Executed"
+    | "Revealing";
 
 
 interface Proposal {
     id: string;
     title: string;
-    description: string;
     proposer: string;
     status: ProposalStatus;
-    createdAt: string;
     deadline: string;
-    votes: {
-        yes: number;
-        no: number;
-        abstain: number;
-    };
+
 }
 
 
 export default function HomePage() {
     const router = useRouter();
-    const [proposals, setProposals] = useState<Proposal[]>([
-        {
-            id: "1",
-            title: "Increase Treasury Budget",
-            proposer: "0x123...def",
-            status: "Voting",
-            deadline: "2025-07-12",
-            description: "",
-            createdAt: "",
-            votes: {
-                yes: 0,
-                no: 0,
-                abstain: 0
-            }
-        },
-        {
-            id: "2",
-            title: "Fund Community Hackathon",
-            proposer: "0xabc...456",
-            status: "Succeeded",
-            deadline: "2025-07-01",
-            description: "",
-            createdAt: "",
-            votes: {
-                yes: 0,
-                no: 0,
-                abstain: 0
-            }
-        },
+    const [proposals, setProposals] = useState<Proposal[]>([]);
+    const chainId = 31337;
+    const config = useConfig();
+    const addressContract = chainToAddress[chainId]['address'] as `0x${string}`;
 
-    ]);
     useEffect(() => {
         const fetchData = async () => {
             // your async code here, e.g.:
+            const provider = getEthersProvider(config)
+            if (!provider) throw new Error('No provider found')
+
+            const contract = new ethers.Contract(addressContract, ContractAbi, provider)
             const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-            const queryString = new URLSearchParams({
-                user_id: user.id,
-            }).toString();
-            const response = await fetch(`/api/usersvote?${queryString}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                }
 
-            });
-            const data = await response.json();
-            console.log("Proof gotten successfully:",);
-            console.log(data);
 
             const response2 = await fetch(`/api/proposals`, {
                 method: "GET",
@@ -89,6 +55,54 @@ export default function HomePage() {
             const datax = await response2.json();
             console.log("Proof gotten successfully:",);
             console.log(datax.proposals);
+            for (let i = 0; i < datax.proposals.length; i++) {
+                const proposal = datax.proposals[i];
+                const block = datax.proposals[i].end_block - datax.proposals[i].start_block;
+                const estimatedSeconds = block * 1; // ≈ 9744 seconds
+                const estimatedDate = new Date(Date.now() + estimatedSeconds * 1000);
+
+                const proposalStatus = await contract.state(BigInt(proposal.id));
+                let status: ProposalStatus;
+                switch (Number(proposalStatus)) {
+                    case 0:
+                        status = "Pending";
+                        break;
+                    case 1:
+                        status = "Active";
+                        break;
+                    case 2:
+                        status = "Canceled";
+                        break;
+                    case 3:
+                        status = "Defeated";
+                        break;
+                    case 4:
+                        status = "Succeeded";
+                        break;
+                    case 5:
+                        status = "Queued";
+                        break;
+                    case 6:
+                        status = "Expired";
+                        break;
+                    case 7:
+                        status = "Executed";
+                        break;
+                    case 8:
+                        status = "Revealing";
+                        break;
+                    default:
+                        status = "Pending"; // Default case
+                }
+                // Assuming proposal has properties id, title, proposer, status, deadline
+                setProposals(prev => [...prev, {
+                    id: proposal.id,
+                    title: proposal.description,
+                    proposer: proposal.proposer,
+                    status: status as ProposalStatus,
+                    deadline: estimatedDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+                }]);
+            }
         };
 
         fetchData();

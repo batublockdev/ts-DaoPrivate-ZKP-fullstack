@@ -1084,7 +1084,7 @@ export const ContractAbi = [
             {
                 "name": "proposalId",
                 "type": "uint256",
-                "indexed": false,
+                "indexed": true,
                 "internalType": "uint256"
             },
             {

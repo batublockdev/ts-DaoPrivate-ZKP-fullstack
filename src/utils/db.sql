@@ -1,4 +1,6 @@
 -- Table 1: proof_table with large numeric fields
+psql -U me -d zkdb -h localhost
+
 CREATE TABLE proof_table (
     id SERIAL PRIMARY KEY,
     proposal_id NUMERIC NOT NULL,
@@ -27,6 +29,7 @@ CREATE TABLE IF NOT EXISTS proposals (
     deadline TIMESTAMP,       
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
 -- User_votes table
 CREATE TABLE user_votes_table (
     id SERIAL PRIMARY KEY,
@@ -66,7 +69,7 @@ CREATE TABLE publicdata_table (
 -- Table 2: publicdata_table with large numeric fields
 CREATE TABLE makletree_commitments_table (
     id SERIAL PRIMARY KEY,
-    commitment NUMERIC NOT NULL,
+    commitment TEXT NOT NULL,
     proof_table_id INTEGER NOT NULL REFERENCES proof_table(proposal_id) ON DELETE CASCADE
 );
 /**
@@ -74,8 +77,8 @@ WE NEED TI CHANGE NUMBERIC DATAS BY TEXT
 */
 CREATE TABLE makletree_leaves_table (
     id SERIAL PRIMARY KEY,
-    tree_id INTEGER NOT NULL,
-    leaf_index INTEGER NOT NULL,    
+    tree_id TEXT NOT NULL,
+    leaf_index TEXT NOT NULL,    
     leaf_value TEXT NOT NULL       
 
     UNIQUE (tree_id, leaf_index)

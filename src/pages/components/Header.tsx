@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { chainToAddress, ContractAbi } from '../constants';
+import { useWatchContractEvent, useChainId, useConfig, useAccount } from 'wagmi';
+import { getEthersProvider } from '../../Ether-Wagmi';
+import { formatEther, ethers, parseEther } from 'ethers';
 
 interface HeaderProps {
     title: string;
@@ -8,12 +12,50 @@ interface HeaderProps {
 const Header = ({ title }: HeaderProps) => {
     const router = useRouter();
     const [name, setName] = useState("");
+    const chainId = 31337;
+    const config = useConfig();
+    const addressContract = chainToAddress[chainId]['address'] as `0x${string}`;
 
     useEffect(() => {
-        if (typeof window !== "undefined") {
+        const fetchDataUser = async () => {
+            // your async code here, e.g.:
+            const provider = getEthersProvider(config)
+            if (!provider) throw new Error('No provider found')
+
+            const contract = new ethers.Contract(addressContract, ContractAbi, provider)
+
             const user = JSON.parse(localStorage.getItem("user") || "{}");
-            setName(user.name || "");
-        }
+
+            if (typeof window !== "undefined") {
+                const user = JSON.parse(localStorage.getItem("user") || "{}");
+                setName(user.name || "");
+            }
+            const queryString = new URLSearchParams({
+                user_id: user.id,
+            }).toString();
+            const response = await fetch(`/api/usersvote?${queryString}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+
+            });
+            const data = await response.json();
+            console.log("Proof gotten successfully:",);
+            console.log(data.votes[0]);
+            for (let i = 0; i < data.votes.length; i++) {
+                const vote = data.votes[i];
+                const proposal = await contract.state(BigInt(vote.proposal_id));
+                console.log("Proposal state:", proposal);
+                console.log("Vote:", vote);
+            }
+
+        };
+
+        fetchDataUser();
+
+
+
     }, []);
 
     return (

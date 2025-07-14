@@ -3,32 +3,33 @@ import ProposalCard from "./ProposalCard";
 import SendModal from "./Modal"; // Adjust the import path as necessary
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { chainToAddress, ContractAbi } from '../constants';
+import { useWatchContractEvent, useChainId, useConfig, useAccount } from 'wagmi';
+import { getEthersProvider } from '../../Ether-Wagmi';
+import { formatEther, ethers, parseEther } from 'ethers';
 
 export default function Page() {
     const [showModal, setShowModal] = useState(false);
     const [vote, setVote] = useState<"1" | "0" | "2">("1"); // 1 for yes, 0 for no, 2 for abstain
-    const [hasVoted, sethasVoted] = useState<boolean>(false);
+    const [hasVoted, sethasVoted] = useState<boolean>(true);
+    const chainId = 31337;
+    const config = useConfig();
+    const addressContract = chainToAddress[chainId]['address'] as `0x${string}`;
 
 
     const router = useRouter();
     const { id } = router.query;
 
-
-    useEffect(() => {
-        if (id) {
-            // Example: Fetch proposal or get from local state
-            console.log("Selected proposal ID:", id);
-            // Fetch or load from state/store
-        }
-    }, [id]);
-
     type ProposalStatus =
         | "Pending"
-        | "Voting"
-        | "Revealing"
-        | "Succeeded"
+        | "Active"
+        | "Canceled"
         | "Defeated"
-        | "Executed";
+        | "Succeeded"
+        | "Queued"
+        | "Expired"
+        | "Executed"
+        | "Revealing";
     const [proposal, setProposal] = useState<{
         title: string;
         description: string;
@@ -42,29 +43,147 @@ export default function Page() {
             abstain: number;
         };
     }>({
-        title: "ZK Treasury Funding",
-        description: "Commit 1000 DAI to ZK privacy research.",
-        proposer: "0x1234...abcd",
-        status: "Voting", // or Revealing / Succeeded
-        createdAt: "2025-07-06",
-        deadline: "2025-07-10",
+        title: "",
+        description: "",
+        proposer: "",
+        status: "Pending", // or Revealing / Succeeded
+        createdAt: "",
+        deadline: "",
         votes: {
-            yes: 20,
-            no: 10,
-            abstain: 2,
+            yes: 0,
+            no: 0,
+            abstain: 0,
         },
     });
+
+
+
+    useEffect(() => {
+        const fetchDataUser = async () => {
+            if (id) {
+                // Example: Fetch proposal or get from local state
+                console.log("Selected proposal ID:", id);
+                // Fetch or load from state/store
+                // your async code here, e.g.:
+                const provider = getEthersProvider(config)
+                if (!provider) throw new Error('No provider found')
+
+                const contract = new ethers.Contract(addressContract, ContractAbi, provider)
+
+                let user;
+
+                if (typeof window !== "undefined") {
+                    user = JSON.parse(localStorage.getItem("user") || "{}");
+
+                }
+                const queryString = new URLSearchParams({
+                    proposal_id: id.toString(),
+                }).toString();
+                const response = await fetch(`/api/proposals?${queryString}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    }
+
+                });
+                const data = await response.json();
+                console.log("Proof gotten successfully:",);
+                console.log(data.proposals[0]);
+                const proposalStatus = await contract.state(BigInt(id.toString()));
+                console.log("Proposal:", Number(proposalStatus));
+                let status: ProposalStatus;
+                let showVotes = false;
+                switch (Number(proposalStatus)) {
+                    case 0:
+                        status = "Pending";
+                        break;
+                    case 1:
+                        status = "Active";
+                        break;
+                    case 2:
+                        status = "Canceled";
+                        break;
+                    case 3:
+                        status = "Defeated";
+                        showVotes = true; // Show votes for defeated proposals
+                        break;
+                    case 4:
+                        status = "Succeeded";
+                        showVotes = true; // Show votes for succeeded proposals
+                        break;
+                    case 5:
+                        status = "Queued";
+                        showVotes = true; // Show votes for queued proposals
+                        break;
+                    case 6:
+                        status = "Expired";
+                        showVotes = true; // Show votes for expired proposals
+                        break;
+                    case 7:
+                        status = "Executed";
+                        showVotes = true; // Show votes for executed proposals
+                        break;
+                    case 8:
+                        status = "Revealing";
+                        break;
+                    default:
+                        status = "Pending"; // Default case
+                }
+
+                if (showVotes) {
+                    const [forVotes, againstVotes, abstainVotes] = await contract.getVotes(BigInt(id.toString()));
+                    setProposal({
+                        title: data.proposals[0].description,
+                        description: data.proposals[0].description,
+                        proposer: data.proposals[0].proposer,
+                        status: status as ProposalStatus,
+                        createdAt: new Date(data.proposals[0].start_block * 1000).toISOString().split('T')[0],
+                        deadline: new Date(data.proposals[0].end_block * 1000).toISOString().split('T')[0],
+                        votes: {
+                            yes: forVotes,
+                            no: againstVotes,
+                            abstain: abstainVotes,
+                        },
+                    })
+                } else {
+                    setProposal({
+                        title: data.proposals[0].description,
+                        description: data.proposals[0].description,
+                        proposer: data.proposals[0].proposer,
+                        status: status as ProposalStatus,
+                        createdAt: new Date(data.proposals[0].start_block * 1000).toISOString().split('T')[0],
+                        deadline: new Date(data.proposals[0].end_block * 1000).toISOString().split('T')[0],
+                        votes: {
+                            yes: 0,
+                            no: 0,
+                            abstain: 0,
+                        },
+                    })
+                }
+
+
+
+
+
+            }
+
+        };
+
+        fetchDataUser();
+
+    }, [id]);
+
 
 
     const handleVote = (vote: "1" | "0" | "2") => {
         setVote(vote);
         setShowModal(true);
     };
-
+    if (!id) return <p>Loading...</p>;
     return (
         <div className="p-4">
             <ProposalCard hasVoted={hasVoted} proposal={proposal} onVote={handleVote} />
-            <SendModal isOpen={showModal} vote={vote} onClose={() => setShowModal(false)} />
+            <SendModal isOpen={showModal} vote={vote} proposalId={id} onClose={() => setShowModal(false)} />
 
         </div>
     );
