@@ -42,10 +42,11 @@ const statusColors: Record<ProposalStatus, string> = {
 interface Props {
     proposal: ProposalInfo;
     onVote: (vote: "1" | "0" | "2") => void;
+    onReveal: () => void;
     hasVoted: boolean;
 }
 
-const ProposalCard: React.FC<Props> = ({ proposal, onVote, hasVoted }) => {
+const ProposalCard: React.FC<Props> = ({ proposal, onVote, onReveal, hasVoted }) => {
     const router = useRouter();
 
     const totalVotes = proposal.votes.yes + proposal.votes.no + proposal.votes.abstain || 1;
@@ -98,7 +99,7 @@ const ProposalCard: React.FC<Props> = ({ proposal, onVote, hasVoted }) => {
             {proposal.status === "Revealing" && hasVoted && (
                 <div className="mt-6">
                     <button
-                        // onClick={onReveal}
+                        onClick={onReveal}
                         className="text-base px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
                     >
                         Reveal My Vote

@@ -70,7 +70,7 @@ export default function RevealProgressTable({
                         <th className="px-4 py-3">
                             <span className="sr-only">Select</span>
                         </th>
-                        <th className="px-6 py-3">Voter</th>
+                        <th className="px-6 py-3">Proposal</th>
                         <th className="px-6 py-3">Status</th>
                     </tr>
                 </thead>

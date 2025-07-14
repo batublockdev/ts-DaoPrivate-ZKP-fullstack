@@ -1,3 +1,4 @@
+import { error } from "node:console";
 
 const circomlibjs = require("circomlibjs");
 
@@ -174,7 +175,10 @@ function zeros(i: number): bigint {
     }
 }
 
-export async function GetPathFromIndex(index: number) {
+export async function GetPathFromIndex(index: number, proposalId: string | string[] | undefined) {
+    if (typeof proposalId !== "string") {
+        throw new Error("proposalId must be a string");
+    }
     await initPoseidon(); // Make sure Poseidon is ready
     const babyjub = await circomlibjs.buildBabyjub();
     const F = babyjub.F;
@@ -183,7 +187,10 @@ export async function GetPathFromIndex(index: number) {
 
     // fix the fecth URL to your API endpoint
     try {
-        const response = await fetch("http://localhost:3000/api/dbtree", {
+        const queryString = new URLSearchParams({
+            proposal: proposalId,
+        }).toString();
+        const response = await fetch(`http://localhost:3000/api/dbtree?${queryString}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -226,6 +233,9 @@ export async function GetPathFromIndex(index: number) {
 };
 
 export async function CreateCommitment(username: string, vote: string, secret: string) {
+    if (typeof username !== "string" || typeof vote !== "string" || typeof secret !== "string") {
+        throw new Error("Invalid input types. Expected strings.");
+    }
     await initPoseidon(); // Make sure Poseidon is ready
     const babyjub = await circomlibjs.buildBabyjub();
     const F = babyjub.F;
@@ -253,7 +263,11 @@ export async function CreateCommitment(username: string, vote: string, secret: s
     };
 };
 
-export async function GetIndex(commiment: string) {
+
+export async function GetIndex(commiment: string, proposalId: string | string[] | undefined) {
+    if (typeof proposalId !== "string") {
+        throw new Error("proposalId must be a string");
+    }
     await initPoseidon(); // Make sure Poseidon is ready
     const babyjub = await circomlibjs.buildBabyjub();
     const F = babyjub.F;
@@ -266,7 +280,10 @@ export async function GetIndex(commiment: string) {
 
     // fix the fecth URL to your API endpoint
     try {
-        const response = await fetch("http://localhost:3000/api/dbtree", {
+        const queryString = new URLSearchParams({
+            proposal: proposalId,
+        }).toString();
+        const response = await fetch(`http://localhost:3000/api/dbtree?${queryString}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -297,7 +314,7 @@ export async function GetIndex(commiment: string) {
         return index;
     } else {
         console.log("Leaf not found in the array");
-        return null;
+        throw new Error("Leaf not found in the array");
     }
 
 };

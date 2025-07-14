@@ -1,6 +1,7 @@
 "use client";
 import ProposalCard from "./ProposalCard";
 import SendModal from "./Modal"; // Adjust the import path as necessary
+import RevealModal from "./RevealModal"; // Adjust the import path as necessary
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { chainToAddress, ContractAbi } from '../constants';
@@ -10,6 +11,8 @@ import { formatEther, ethers, parseEther } from 'ethers';
 
 export default function Page() {
     const [showModal, setShowModal] = useState(false);
+    const [showRevealModal, setShowRevealModal] = useState(false);
+
     const [vote, setVote] = useState<"1" | "0" | "2">("1"); // 1 for yes, 0 for no, 2 for abstain
     const [hasVoted, sethasVoted] = useState<boolean>(true);
     const chainId = 31337;
@@ -179,12 +182,15 @@ export default function Page() {
         setVote(vote);
         setShowModal(true);
     };
+    const onReveal = () => {
+        setShowRevealModal(true);
+    }
     if (!id) return <p>Loading...</p>;
     return (
         <div className="p-4">
-            <ProposalCard hasVoted={hasVoted} proposal={proposal} onVote={handleVote} />
+            <ProposalCard hasVoted={hasVoted} proposal={proposal} onReveal={onReveal} onVote={handleVote} />
             <SendModal isOpen={showModal} vote={vote} proposalId={id} onClose={() => setShowModal(false)} />
-
+            <RevealModal isOpen={showRevealModal} proposalId={id} onClose={() => setShowRevealModal(false)} />
         </div>
     );
 }

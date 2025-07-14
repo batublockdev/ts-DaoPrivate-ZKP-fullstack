@@ -25,7 +25,7 @@ export default function Homex() {
             {/* Action Buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mb-6">
                 <button
-                    onClick={() => router.push("components/voteFace")}
+                    onClick={() => router.push("/components/voteFace")}
                     className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow transition"
                 >
                     🗳️ Pending Votes

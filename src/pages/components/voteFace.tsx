@@ -6,6 +6,7 @@ const TOTAL = 5;
 const INITIAL = [
     { voter: "0x111...aaa", voteOption: "" },
     { voter: "0x222...bbb", voteOption: "" },
+    { voter: "0xx333...ccc", voteOption: "" },
     { voter: "0x333...ccc", voteOption: "" },
 
 ];
