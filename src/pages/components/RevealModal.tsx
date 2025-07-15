@@ -40,7 +40,11 @@ export default function RevealModal({ isOpen, proposalId, onClose }: SendModalPr
 
 
 
-    const saveDB = async () => {
+    const saveDB = async (Vproofx: ProofData["proof"], VpublicSignalsx: ProofData["publicSignals"]) => {
+        if (!Vproofx || !VpublicSignalsx) {
+            console.error("Proof or public signals are not set.");
+            return;
+        }
         try {
             const response = await fetch("/api/ds", {
                 method: "POST",
@@ -49,29 +53,68 @@ export default function RevealModal({ isOpen, proposalId, onClose }: SendModalPr
                 },
                 body: JSON.stringify({
                     proposal_id: proposalId,
-                    field1: Vproof.pi_a[0],
-                    field2: Vproof.pi_a[1],
-                    field3: Vproof.pi_b[0][1],
-                    field4: Vproof.pi_b[0][0],
-                    field5: Vproof.pi_b[1][1],
-                    field6: Vproof.pi_b[1][0],
-                    field7: Vproof.pi_c[0],
-                    field8: Vproof.pi_c[1],
+                    field1: Vproofx.pi_a[0],
+                    field2: Vproofx.pi_a[1],
+                    field3: Vproofx.pi_b[0][1],
+                    field4: Vproofx.pi_b[0][0],
+                    field5: Vproofx.pi_b[1][1],
+                    field6: Vproofx.pi_b[1][0],
+                    field7: Vproofx.pi_c[0],
+                    field8: Vproofx.pi_c[1],
                     transation_hash: "---", // Replace with actual transaction hash
                     sended: false, // Initial state
-                    nullfier: VpublicSignals[1],
-                    vote: VpublicSignals[2],
+                    nullfier: VpublicSignalsx[1],
+                    vote: VpublicSignalsx[2],
                 }),
             });
 
             if (response.ok) {
-                alert("✅ Data saved successfully!");
+                console.log("✅ Data saved successfully!");
             } else {
-                alert("❌ Failed to save data.");
+                console.log("❌ Failed to save data.");
+
             }
         } catch (error) {
             console.error("Error saving proof:", error);
-            alert("❌ Something went wrong.");
+            console.log("❌ Something went wrong.");
+        }
+        //UPDATE DATA BASE
+        try {
+            const response = await fetch("/api/usersvote", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    user_id: (JSON.parse(localStorage.getItem("user") || "{}").id || ""),
+                    proposal_id: proposalId,
+                    vote: true,
+                    reveal: false
+                }),
+            });
+
+            if (response.ok) {
+                console.log("✅ Data saved successfully!");
+            } else {
+                console.log("❌ Failed to save data.");
+            }
+        } catch (error) {
+            console.error("Error saving proof:", error);
+            console.log("❌ Something went wrong.");
+        }
+
+        //UPDATE LOCALSTORAGE
+        const VotingInfo = JSON.parse(localStorage.getItem("ProposalsVoted") || "{}");
+        if (Array.isArray(VotingInfo)) {
+            const updatedVotingInfo = VotingInfo.map((vote: any) => {
+                if (vote.proposal_id === proposalId) {
+                    return { ...vote, reveal: true };
+                }
+                return vote;
+            });
+            localStorage.setItem("ProposalsVoted", JSON.stringify(updatedVotingInfo));
+        } else {
+            console.error("VotingInfo is not an array:", VotingInfo);
         }
     }
 
@@ -165,7 +208,7 @@ export default function RevealModal({ isOpen, proposalId, onClose }: SendModalPr
             if (res) {
                 VsetProof(fullProof.proof);
                 VsetPublicSignals(fullProof.publicSignals);
-                saveDB();
+                saveDB(fullProof.proof, fullProof.publicSignals);
                 setCurrentScreen(2);
                 setCurrentStep(2);
             }

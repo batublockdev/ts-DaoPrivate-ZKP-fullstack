@@ -16,9 +16,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <Providers>
       {!hideLayout && <Header title="DAO Voting" />}
-      {!hideLayout && (
-        <Sidebar isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
-      )}
+
 
       <main className={`${!hideLayout ? "pt-20 px-4" : ""}`}>
 

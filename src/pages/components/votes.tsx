@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 
 interface PendingVote {
-    voter: string;
-    voteOption: string;
+    nullfier: string;
+    id: string;
 }
 
 interface RevealProgressTableProps {
@@ -84,18 +84,18 @@ export default function RevealProgressTable({
                     ) : (
                         pendingVotes.map((row) => (
                             <tr
-                                key={row.voter}
+                                key={row.id}
                                 className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
                             >
                                 <td className="px-4 py-3">
                                     <input
                                         type="checkbox"
-                                        checked={selected.includes(row.voter)}
-                                        onChange={() => handleCheckbox(row.voter)}
+                                        checked={selected.includes(row.id)}
+                                        onChange={() => handleCheckbox(row.id)}
                                         className="accent-indigo-600"
                                     />
                                 </td>
-                                <td className="px-6 py-3 font-mono">{row.voter}</td>
+                                <td className="px-6 py-3 font-mono">  {row.nullfier.slice(0, 6)}...{row.nullfier.slice(-4)}</td>
                                 <td className="px-6 py-3 text-yellow-600">Pending Reveal</td>
                             </tr>
                         ))

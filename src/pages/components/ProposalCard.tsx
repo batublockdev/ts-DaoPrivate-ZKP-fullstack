@@ -44,9 +44,10 @@ interface Props {
     onVote: (vote: "1" | "0" | "2") => void;
     onReveal: () => void;
     hasVoted: boolean;
+    hasReveal: boolean;
 }
 
-const ProposalCard: React.FC<Props> = ({ proposal, onVote, onReveal, hasVoted }) => {
+const ProposalCard: React.FC<Props> = ({ proposal, onVote, onReveal, hasVoted, hasReveal }) => {
     const router = useRouter();
 
     const totalVotes = proposal.votes.yes + proposal.votes.no + proposal.votes.abstain || 1;
@@ -98,12 +99,18 @@ const ProposalCard: React.FC<Props> = ({ proposal, onVote, onReveal, hasVoted })
             {/* Revealing Phase */}
             {proposal.status === "Revealing" && hasVoted && (
                 <div className="mt-6">
-                    <button
-                        onClick={onReveal}
-                        className="text-base px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
-                    >
-                        Reveal My Vote
-                    </button>
+
+                    {hasReveal ? (
+                        <p className="text-green-600 mt-2">You have already revealed your vote.</p>
+                    ) : (
+                        <button
+                            onClick={onReveal}
+                            className="text-base px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
+                        >
+                            Reveal My Vote
+                        </button>
+                    )}
+
                 </div>
             )}
 

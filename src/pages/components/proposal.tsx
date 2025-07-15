@@ -14,14 +14,17 @@ export default function Page() {
     const [showRevealModal, setShowRevealModal] = useState(false);
 
     const [vote, setVote] = useState<"1" | "0" | "2">("1"); // 1 for yes, 0 for no, 2 for abstain
-    const [hasVoted, sethasVoted] = useState<boolean>(true);
+    const [hasVoted, sethasVoted] = useState<boolean>(false);
+    const [hasReveal, sethasReveal] = useState<boolean>(false);
     const chainId = 31337;
     const config = useConfig();
     const addressContract = chainToAddress[chainId]['address'] as `0x${string}`;
 
 
+
     const router = useRouter();
     const { id } = router.query;
+    const VotingInfo = JSON.parse(localStorage.getItem("ProposalsVoted") || "{}");
 
     type ProposalStatus =
         | "Pending"
@@ -64,6 +67,18 @@ export default function Page() {
     useEffect(() => {
         const fetchDataUser = async () => {
             if (id) {
+
+                VotingInfo.forEach((vote: any) => {
+                    if (vote.proposal_id === id.toString()) {
+                        if (vote.vote === true) {
+                            sethasVoted(true);
+                            if (vote.reveal === true) {
+                                sethasReveal(true);
+                            }
+                        }
+                    }
+                });
+
                 // Example: Fetch proposal or get from local state
                 console.log("Selected proposal ID:", id);
                 // Fetch or load from state/store
@@ -134,7 +149,8 @@ export default function Page() {
                 }
 
                 if (showVotes) {
-                    const [forVotes, againstVotes, abstainVotes] = await contract.getVotes(BigInt(id.toString()));
+                    const [againstVotes, forVotes, abstainVotes] = await contract.proposalVotes(BigInt(id.toString()));
+                    console.log("Votes:", forVotes, againstVotes, abstainVotes);
                     setProposal({
                         title: data.proposals[0].description,
                         description: data.proposals[0].description,
@@ -143,9 +159,9 @@ export default function Page() {
                         createdAt: new Date(data.proposals[0].start_block * 1000).toISOString().split('T')[0],
                         deadline: new Date(data.proposals[0].end_block * 1000).toISOString().split('T')[0],
                         votes: {
-                            yes: forVotes,
-                            no: againstVotes,
-                            abstain: abstainVotes,
+                            yes: Number(forVotes) / 1e18,
+                            no: Number(againstVotes) / 1e18,
+                            abstain: Number(abstainVotes) / 1e18,
                         },
                     })
                 } else {
@@ -188,7 +204,7 @@ export default function Page() {
     if (!id) return <p>Loading...</p>;
     return (
         <div className="p-4">
-            <ProposalCard hasVoted={hasVoted} proposal={proposal} onReveal={onReveal} onVote={handleVote} />
+            <ProposalCard hasVoted={hasVoted} hasReveal={hasReveal} proposal={proposal} onReveal={onReveal} onVote={handleVote} />
             <SendModal isOpen={showModal} vote={vote} proposalId={id} onClose={() => setShowModal(false)} />
             <RevealModal isOpen={showRevealModal} proposalId={id} onClose={() => setShowRevealModal(false)} />
         </div>
