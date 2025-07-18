@@ -2,25 +2,41 @@
 import ProposalCard from "./ProposalCard";
 import SendModal from "./Modal"; // Adjust the import path as necessary
 import RevealModal from "./RevealModal"; // Adjust the import path as necessary
+import ActionsModal from "./ModalSend"; // Adjust the import path as necessary
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { chainToAddress, ContractAbi } from '../constants';
 import { useWatchContractEvent, useChainId, useConfig, useAccount } from 'wagmi';
 import { getEthersProvider } from '../../Ether-Wagmi';
 import { formatEther, ethers, parseEther } from 'ethers';
+import { keccak256 } from 'ethers/crypto';
+
+
 
 export default function Page() {
     const [showModal, setShowModal] = useState(false);
     const [showRevealModal, setShowRevealModal] = useState(false);
+    const [showActionsModal, setShowActionsModal] = useState(false);
+
 
     const [vote, setVote] = useState<"1" | "0" | "2">("1"); // 1 for yes, 0 for no, 2 for abstain
     const [hasVoted, sethasVoted] = useState<boolean>(false);
     const [hasReveal, sethasReveal] = useState<boolean>(false);
+    const [ready, setReady] = useState<boolean>(false);
     const chainId = 31337;
     const config = useConfig();
     const addressContract = chainToAddress[chainId]['address'] as `0x${string}`;
-
-
+    const [dataProposal, setDataProposal] = useState<{
+        targets: string[];
+        values: bigint[];
+        calldatas: string[];
+        descriptionHash: string;
+    }>({
+        targets: [],
+        values: [],
+        calldatas: [],
+        descriptionHash: "",
+    });
 
     const router = useRouter();
     const { id } = router.query;
@@ -36,6 +52,10 @@ export default function Page() {
         | "Expired"
         | "Executed"
         | "Revealing";
+
+    type funName = "cancel" | "execute";
+    let funtionName: funName = "cancel";
+
     const [proposal, setProposal] = useState<{
         title: string;
         description: string;
@@ -111,6 +131,7 @@ export default function Page() {
                 console.log("Proposal:", Number(proposalStatus));
                 let status: ProposalStatus;
                 let showVotes = false;
+
                 switch (Number(proposalStatus)) {
                     case 0:
                         status = "Pending";
@@ -143,6 +164,7 @@ export default function Page() {
                         break;
                     case 8:
                         status = "Revealing";
+                        await getCommitments(id.toString(), data.proposals[0].start_block.toString(), data.proposals[0].end_block.toString());
                         break;
                     default:
                         status = "Pending"; // Default case
@@ -163,7 +185,18 @@ export default function Page() {
                             no: Number(againstVotes) / 1e18,
                             abstain: Number(abstainVotes) / 1e18,
                         },
-                    })
+                    }
+                    )
+
+                    setDataProposal({
+                        targets: data.proposals[0].targets,
+                        values: data.proposals[0].values.map((value: string) => BigInt(value)),
+                        calldatas: data.proposals[0].calldatas,
+                        descriptionHash: keccak256(Buffer.from(data.proposals[0].description, 'utf8')),
+                    });
+
+                    console.log("ready");
+                    setReady(true);
                 } else {
                     setProposal({
                         title: data.proposals[0].description,
@@ -178,12 +211,16 @@ export default function Page() {
                             abstain: 0,
                         },
                     })
+
+                    setDataProposal({
+                        targets: data.proposals[0].targets,
+                        values: data.proposals[0].values.map((value: string) => BigInt(value)),
+                        calldatas: data.proposals[0].calldatas,
+                        descriptionHash: keccak256(Buffer.from(data.proposals[0].description, 'utf8')),
+                    });
+                    console.log("ready");
+                    setReady(true);
                 }
-
-
-
-
-
             }
 
         };
@@ -193,6 +230,30 @@ export default function Page() {
     }, [id]);
 
 
+    const getCommitments = async (proposalId: string, startBlock: string, endBlock: string) => {
+        try {
+            const response = await fetch("/api/merklesaver", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    proposalIdToTrack: proposalId,
+                    startBlock: startBlock,
+                    endBlock: endBlock,
+                }),
+            });
+
+            if (response.ok) {
+                console.log("✅ Data saved successfully!");
+            } else {
+                console.log("❌ Failed to save data.");
+            }
+        } catch (error) {
+            console.error("Error saving proof:", error);
+
+        }
+    };
 
     const handleVote = (vote: "1" | "0" | "2") => {
         setVote(vote);
@@ -201,12 +262,31 @@ export default function Page() {
     const onReveal = () => {
         setShowRevealModal(true);
     }
-    if (!id) return <p>Loading...</p>;
+    const onCancel = () => {
+        funtionName = "cancel";
+        setShowActionsModal(true);
+    }
+    const onExecute = () => {
+        funtionName = "execute";
+        setShowActionsModal(true);
+    }
+    if (!ready)
+        return (<div className="relative w-[80%] min-h-[70vh] mx-auto p-10 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800">
+            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
+        </div>);
     return (
         <div className="p-4">
-            <ProposalCard hasVoted={hasVoted} hasReveal={hasReveal} proposal={proposal} onReveal={onReveal} onVote={handleVote} />
+            <ProposalCard ready onCancel={onCancel} onExecute={onExecute} hasVoted={hasVoted} hasReveal={hasReveal} proposal={proposal} onReveal={onReveal} onVote={handleVote} />
             <SendModal isOpen={showModal} vote={vote} proposalId={id} onClose={() => setShowModal(false)} />
             <RevealModal isOpen={showRevealModal} proposalId={id} onClose={() => setShowRevealModal(false)} />
+            <ActionsModal
+                funtionName={funtionName}
+                dataSend={dataProposal}
+                isOpen={showActionsModal}
+                onSending={(result: boolean) => {
+                    console.log("Proposal sent:", result);
+                }}
+                onClose={() => setShowActionsModal(false)} />
         </div>
     );
 }

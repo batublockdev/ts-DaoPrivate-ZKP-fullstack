@@ -5,14 +5,31 @@ import { useConnect, useDisconnect, useWatchContractEvent, useChainId, useConfig
 import { injected } from 'wagmi/connectors'
 import { chainToAddress, ContractAbi } from '../constants';
 import { useRouter } from "next/router";
+import { getEthersProvider } from '../../Ether-Wagmi';
+import { formatEther, ethers, parseEther } from 'ethers';
 
+type dataProof = {
+    publicData: bigint[][];
+    proof: bigint[][];
+}
+
+type dataProposal = {
+    targets: string[];
+    values: bigint[];
+    calldatas: string[];
+    descriptionHash: string;
+}
+
+type funName = "cancel" | "_castVotes" | "propose" | "execute";
 
 
 interface SendModalProps {
     isOpen: boolean;
-    proof: bigint[][];
-    publicData: bigint[][];
+    funtionName: funName;
+    dataSend: dataProof | dataProposal;
     onClose: () => void;
+    onSending: (result: boolean) => void;
+
 }
 
 const steps = [
@@ -22,7 +39,7 @@ const steps = [
 ];
 
 
-export default function SendProofModal({ isOpen, proof, publicData, onClose }: SendModalProps) {
+export default function SendProofModal({ isOpen, funtionName, dataSend, onClose, onSending }: SendModalProps) {
     const router = useRouter();
     const { address, connector, isConnected } = useAccount();
     const { connect, connectors, error } =
@@ -40,12 +57,22 @@ export default function SendProofModal({ isOpen, proof, publicData, onClose }: S
 
 
     const [currentStep, setCurrentStep] = useState(0);
-    const [CommitmentData, setCommitmentData] = useState<{ Commiment: string; Nullfier: string }>({ Nullfier: "", Commiment: "" });
     const [errorx, setError] = useState("")
     const [currentScreen, setCurrentScreen] = useState(0);
     const [password, setPassword] = useState("");
     const [confirm, setConfirm] = useState("");
     const [status, setStatus] = useState<"idle" | "connecting" | "sending" | "Connected" | "success" | "error">("idle");
+
+    if (funtionName === "cancel" || funtionName === "propose" || funtionName === "execute") {
+        if (!dataSend || !("targets" in dataSend)) {
+            throw new Error("Invalid dataSend for cancel, pospose or execute function");
+        }
+    }
+    if (funtionName === "_castVotes") {
+        if (!dataSend || !("publicData" in dataSend) || !("proof" in dataSend)) {
+            throw new Error("Invalid dataSend for _castVotes function");
+        }
+    }
 
     const handleClick = async () => {
         try {
@@ -53,7 +80,7 @@ export default function SendProofModal({ isOpen, proof, publicData, onClose }: S
 
 
             if (isConnected === true) {
-                Send(CommitmentData);
+                Send();
 
             } else {
                 setStatus("connecting");
@@ -81,6 +108,7 @@ export default function SendProofModal({ isOpen, proof, publicData, onClose }: S
             console.error("Transaction failed:", error);
             setStatus("error");
             //setError(error?.message || "Transaction failed");
+            onSending(false);
 
         }
         if (isConfirmed === true) {
@@ -89,6 +117,7 @@ export default function SendProofModal({ isOpen, proof, publicData, onClose }: S
             setStatus("success");
             setCurrentStep(1);
             setCurrentScreen(1); // 👈 Go to final screen
+            onSending(true);
         };
 
     }, [isConfirmed, isError]);
@@ -138,10 +167,6 @@ export default function SendProofModal({ isOpen, proof, publicData, onClose }: S
         }
     };
 
-    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-
-
 
 
     const Connect = async (): Promise<boolean> => {
@@ -149,35 +174,70 @@ export default function SendProofModal({ isOpen, proof, publicData, onClose }: S
 
         await connect({ connector: injected() });
 
-        await sleep(2000); // Wait 2 seconds
         return true;
     };
 
-    const Send = async (data: { Commiment: string; Nullfier: string }) => {
-        console.log("📤 Sending data:", data);
+    const Send = async () => {
+
         setStatus("sending");
         console.log("Transaction sent:11")
 
-        try {
-            console.log("Transaction sent:11xx");
 
-            const txHash = await writeContractAsync({
-                abi: ContractAbi,
-                address: addressContract as `0x${string}`,
-                functionName: "_castVotes",
-                args: [
-                    publicData,
-                    proof
-                ],
-            })
-            console.log("Transaction sent:", txHash)
-        } catch (err) {
-            console.error("Transaction rejected or failed to send:", err)
+
+
+        console.log("Transaction sent:", funtionName);
+        if (funtionName === "cancel" || funtionName === "propose" || funtionName === "execute") {
+            if (dataSend && "targets" in dataSend) {
+                try {
+                    const txHash = await writeContractAsync({
+                        abi: ContractAbi,
+                        address: addressContract as `0x${string}`,
+                        functionName: funtionName,
+                        args: [
+                            dataSend.targets,
+                            dataSend.values,
+                            dataSend.calldatas,
+                            dataSend.descriptionHash,
+                        ],
+                    })
+                    console.log("Transaction sent:", txHash)
+                } catch (err) {
+                    console.error("Transaction rejected or failed to send:", err)
+                    setStatus("error");
+                    onSending(false);
+                    return;
+                }
+            }
+
+
+            console.log("Transaction sent:1")
+
+
+            return true;
+        } else {
+            console.log("Transaction sent con funname", funtionName);
+            if (dataSend && "publicData" in dataSend) {
+                console.log("Data send is public data")
+
+                try {
+                    const txHash = await writeContractAsync({
+                        abi: ContractAbi,
+                        address: addressContract as `0x${string}`,
+                        functionName: funtionName,
+                        args: [
+                            dataSend.publicData,
+                            dataSend.proof,
+                        ],
+                    })
+                    console.log("Transaction sent:", txHash)
+                } catch (err) {
+                    console.error("Transaction rejected or failed to send:", err)
+                    setStatus("error");
+                    onSending(false);
+                    return;
+                }
+            }
         }
-        console.log("Transaction sent:1")
-
-
-        return true;
     };
 
 
@@ -206,7 +266,7 @@ export default function SendProofModal({ isOpen, proof, publicData, onClose }: S
 
                 {/* Steps */}
 
-                <ol className="flex justify-between items-center mb-8 px-8">
+                <ol className="flex items-center justify-center gap-x-4 sm:gap-x-6 md:gap-x-8 mb-6">
                     {steps.map((step, index) => (
                         <li key={index} className="flex flex-col items-center text-center">
                             <div className="flex flex-col items-center">
@@ -247,12 +307,12 @@ export default function SendProofModal({ isOpen, proof, publicData, onClose }: S
                         </div>
 
 
-                    ) : currentScreen === 3 ? (
+                    ) : currentScreen === 1 ? (
                         <div className="space-y-4 text-center">
                             <div className="text-3xl">🎉</div>
                             <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Vote Submitted!</h3>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                                Your zero-knowledge vote was successfully committed. Thank you for participating in the private DAO.
+                                Zero-knowledge votes were successfully taken in the DAO. Thank you for participating in the private DAO.
                             </p>
                             <button
                                 onClick={() => {

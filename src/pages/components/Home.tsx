@@ -38,15 +38,9 @@ export default function Homex() {
                     📄 View Proposals
                 </button>
 
-                <button
-                    onClick={() => router.push("/admin")}
-                    className="bg-gray-700 hover:bg-gray-800 text-white font-semibold py-3 px-6 rounded-lg shadow transition"
-                >
-                    ⚙️ Admin Actions
-                </button>
 
                 <button
-                    onClick={() => router.push("/create-proposal")}
+                    onClick={() => router.push("/components/useCreateProposal")}
                     className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow transition"
                 >
                     ➕ Create Proposal

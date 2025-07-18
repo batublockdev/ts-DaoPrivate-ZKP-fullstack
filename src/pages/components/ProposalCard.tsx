@@ -45,15 +45,25 @@ interface Props {
     onReveal: () => void;
     hasVoted: boolean;
     hasReveal: boolean;
+    onCancel: () => void;
+    onExecute: () => void;
+    ready: boolean;
 }
 
-const ProposalCard: React.FC<Props> = ({ proposal, onVote, onReveal, hasVoted, hasReveal }) => {
+const ProposalCard: React.FC<Props> = ({ proposal, ready, onVote, onReveal, hasVoted, hasReveal, onCancel, onExecute }) => {
     const router = useRouter();
 
     const totalVotes = proposal.votes.yes + proposal.votes.no + proposal.votes.abstain || 1;
     const yesPercent = (proposal.votes.yes / totalVotes) * 100;
     const noPercent = (proposal.votes.no / totalVotes) * 100;
     const abstainPercent = (proposal.votes.abstain / totalVotes) * 100;
+    if (!ready) {
+        return (
+            <div className="relative w-[80%] min-h-[70vh] mx-auto p-10 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800">
+                <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
+            </div>
+        );
+    }
 
     return (
         <div className="relative w-[80%] min-h-[70vh] mx-auto p-10 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800">
@@ -97,7 +107,7 @@ const ProposalCard: React.FC<Props> = ({ proposal, onVote, onReveal, hasVoted, h
             )}
 
             {/* Revealing Phase */}
-            {proposal.status === "Revealing" && hasVoted && (
+            {proposal.status === "Revealing" && (
                 <div className="mt-6">
 
                     {hasReveal ? (
@@ -129,6 +139,26 @@ const ProposalCard: React.FC<Props> = ({ proposal, onVote, onReveal, hasVoted, h
                             "Proposal expired before it could be executed."}
                     </p>
                 </>
+            )}
+            {(proposal.status === "Pending" || proposal.status === "Succeeded") && (
+                <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+                    {proposal.status === "Pending" && (
+                        <button
+                            onClick={onCancel}
+                            className="px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 w-full sm:w-auto"
+                        >
+                            Cancel Proposal
+                        </button>
+                    )}
+                    {proposal.status === "Succeeded" && (
+                        <button
+                            onClick={onExecute}
+                            className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 w-full sm:w-auto"
+                        >
+                            Execute Proposal
+                        </button>
+                    )}
+                </div>
             )}
 
             {/* Status Note */}

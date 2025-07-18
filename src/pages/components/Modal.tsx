@@ -40,7 +40,7 @@ export default function SendModal({ isOpen, vote, proposalId, onClose }: SendMod
         confirmations: 1,
         hash,
     })
-
+    const IdProposal = proposalId ? (typeof proposalId === "string" ? proposalId : "0") : "0";
 
     const [currentStep, setCurrentStep] = useState(0);
     const [CommitmentData, setCommitmentData] = useState<{ Commiment: string; Nullfier: string }>({ Nullfier: "", Commiment: "" });
@@ -115,13 +115,13 @@ export default function SendModal({ isOpen, vote, proposalId, onClose }: SendMod
             });
 
             if (response.ok) {
-                alert("✅ Data saved successfully!");
+                console.log("✅ Data saved successfully!");
             } else {
-                alert("❌ Failed to save data.");
+                console.log("❌ Failed to save data.");
             }
         } catch (error) {
             console.error("Error saving proof:", error);
-            alert("❌ Something went wrong.");
+
         }
     }
     const renderMessage = () => {
@@ -192,17 +192,17 @@ export default function SendModal({ isOpen, vote, proposalId, onClose }: SendMod
     const Send = async (data: { Commiment: string; Nullfier: string }) => {
         console.log("📤 Sending data:", data);
         setStatus("sending");
-        console.log("Transaction sent:11")
 
         try {
-            console.log("Transaction sent:11xx");
+            console.log("Transaction sending ...", IdProposal)
+
 
             const txHash = await writeContractAsync({
                 abi: ContractAbi,
                 address: addressContract as `0x${string}`,
                 functionName: "summitVote",
                 args: [
-                    BigInt("0x9b7711a60f21741da8bf0a5b6fefe5acde8cd407f7913db4a979be32ad067eee"),
+                    BigInt(IdProposal),
                     BigInt(CommitmentData.Commiment)
                 ],
             })

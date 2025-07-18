@@ -27,7 +27,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "src/utils/listener.js"
+    "src/utils/listener.js",
+    "src/pages/components/ModalCreateProposaltsx"
   ],
   "exclude": [
     "node_modules"

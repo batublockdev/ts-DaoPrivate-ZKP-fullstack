@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import RevealProgressTable from "./votes";
-import SendProofModal from "./ModalSendProof"; // Adjust the import path as necessary
+import SendProofModal from "./ModalSend"; // Adjust the import path as necessary
 
 
 
@@ -8,6 +8,7 @@ import SendProofModal from "./ModalSendProof"; // Adjust the import path as nece
 
 export default function RevealPage() {
     const [TOTAL, setTOTAL] = useState<number>(0);
+    const [voters, setVoters] = useState<string[]>([]);
     const [pendingVotes, setPendingVotes] = useState<{ nullfier: string; id: string }[]>([]);
     const [revealedCount, setRevealedCount] = useState(0);
     const [datadb, setdb] = useState([]);
@@ -52,18 +53,25 @@ export default function RevealPage() {
 
     }, []);
 
+    const isConfrimed = (result: boolean) => {
+        if (result) {
+            setPendingVotes((prev) => prev.filter((v) => !voters.includes(v.id)));
+            setRevealedCount((prev) => prev + voters.length);
+        } else {
+            console.log("❌ Failed to reveal votes.");
+        }
+    };
 
     const handleRevealMany = (voters: string[]) => {
-        setPendingVotes((prev) => prev.filter((v) => !voters.includes(v.id)));
-        setRevealedCount((prev) => prev + voters.length);
+
         // Trigger your reveal logic for each voter here (e.g., Merkle + ZK)
         console.log("Revealing votes for:", voters);
-        const proofx: bigint[][] = [];
-        const publicx: bigint[][] = [];
+
 
         voters.forEach((voter) => {
             // Call your reveal function here, e.g., revealVote(voter);
             console.log(`Revealing vote for voter with ID: ${voter}`);
+            setVoters(voters);
             datadb.forEach((vote: any) => {
                 if (vote.main_id === voter) {
 
@@ -98,7 +106,7 @@ export default function RevealPage() {
                 pendingVotes={pendingVotes}
                 onRevealMany={handleRevealMany}
             />
-            <SendProofModal isOpen={showModal} proof={proof} publicData={publicData} onClose={() => setShowModal(false)} />
+            <SendProofModal onSending={isConfrimed} funtionName="_castVotes" isOpen={showModal} dataSend={{ publicData, proof }} onClose={() => setShowModal(false)} />
         </>
 
     );

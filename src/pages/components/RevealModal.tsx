@@ -9,6 +9,7 @@ interface SendModalProps {
     isOpen: boolean;
     proposalId: string | string[] | undefined;
     onClose: () => void;
+
 }
 
 const steps = [
