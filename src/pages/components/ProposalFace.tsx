@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import ProposalList from "./proposallist";
 import { useRouter } from "next/router";
-import { chainToAddress, ContractAbi } from '../constants';
+import { chainToAddress, ContractAbi } from '../../constants';
 import { useWatchContractEvent, useChainId, useConfig, useAccount } from 'wagmi';
 import { getEthersProvider } from '../../Ether-Wagmi';
 import { formatEther, ethers, parseEther } from 'ethers';
@@ -29,7 +29,7 @@ interface Proposal {
 
 export default function HomePage() {
     const router = useRouter();
-    const [proposals, setProposals] = useState<Proposal[]>([]);
+    const [proposalsx, setProposals] = useState<Proposal[]>([]);
     const { chain } = useAccount();
     const chainId = 11155111;
     const config = useConfig();
@@ -56,53 +56,54 @@ export default function HomePage() {
             const datax = await response2.json();
             console.log("Proposal gotten",);
             console.log(datax.proposals);
-            for (let i = 0; i < datax.proposals.length; i++) {
-                const proposal = datax.proposals[i];
-                const block = datax.proposals[i].end_block - datax.proposals[i].start_block;
-                const estimatedSeconds = block * 1; // ≈ 9744 seconds
-                const estimatedDate = new Date(Date.now() + estimatedSeconds * 1000);
-                console.log(BigInt(proposal.id));
-                const proposalStatus = await contract.state(BigInt(proposal.id));
-                let status: ProposalStatus;
-                switch (Number(proposalStatus)) {
-                    case 0:
-                        status = "Pending";
-                        break;
-                    case 1:
-                        status = "Active";
-                        break;
-                    case 2:
-                        status = "Canceled";
-                        break;
-                    case 3:
-                        status = "Defeated";
-                        break;
-                    case 4:
-                        status = "Succeeded";
-                        break;
-                    case 5:
-                        status = "Queued";
-                        break;
-                    case 6:
-                        status = "Expired";
-                        break;
-                    case 7:
-                        status = "Executed";
-                        break;
-                    case 8:
-                        status = "Revealing";
-                        break;
-                    default:
-                        status = "Pending"; // Default case
-                }
-                // Assuming proposal has properties id, title, proposer, status, deadline
-                setProposals(prev => [...prev, {
-                    id: proposal.id,
-                    title: proposal.description,
-                    proposer: proposal.proposer,
-                    status: status as ProposalStatus,
-                    blockEnd: proposal.end_block.toString()
-                }]);
+            if (datax?.proposals && Array.isArray(datax.proposals)) {
+                datax?.proposals?.forEach(async (proposal: { id: string; description: any; proposer: any; end_block: string }) => {
+
+
+                    const proposalStatus = await contract.state(BigInt(proposal.id));
+                    let status: ProposalStatus;
+                    switch (Number(proposalStatus)) {
+                        case 0:
+                            status = "Pending";
+                            break;
+                        case 1:
+                            status = "Active";
+                            break;
+                        case 2:
+                            status = "Canceled";
+                            break;
+                        case 3:
+                            status = "Defeated";
+                            break;
+                        case 4:
+                            status = "Succeeded";
+                            break;
+                        case 5:
+                            status = "Queued";
+                            break;
+                        case 6:
+                            status = "Expired";
+                            break;
+                        case 7:
+                            status = "Executed";
+                            break;
+                        case 8:
+                            status = "Revealing";
+                            break;
+                        default:
+                            status = "Pending"; // Default case
+                    }
+                    // Assuming proposal has properties id, title, proposer, status, deadline
+                    setProposals(prev => [...prev, {
+                        id: proposal.id,
+                        title: proposal.description,
+                        proposer: proposal.proposer,
+                        status: status as ProposalStatus,
+                        blockEnd: proposal.end_block.toString()
+                    }]);
+
+                });
+
             }
         };
 
@@ -119,5 +120,5 @@ export default function HomePage() {
         });
     };
 
-    return <ProposalList proposals={proposals} onSelect={handleSelect} />;
+    return <ProposalList proposals={proposalsx} onSelect={handleSelect} />;
 }

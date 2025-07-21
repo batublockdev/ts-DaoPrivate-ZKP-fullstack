@@ -32,16 +32,16 @@ const statusColors: Record<ProposalStatus, string> = {
 };
 
 interface ProposalListProps {
-    proposals: ProposalInfo[];
+    proposals?: ProposalInfo[];
     onSelect: (id: string) => void;
 }
 
-export default function ProposalList({ proposals, onSelect }: ProposalListProps) {
+export default function ProposalList({ proposals = [], onSelect }: ProposalListProps) {
     return (
         <div className="w-full max-w-3xl mx-auto mt-8 p-6 bg-white dark:bg-gray-900 rounded-2xl shadow-md border border-gray-200 dark:border-gray-800">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">📜 All Proposals</h2>
 
-            {proposals.length === 0 ? (
+            {(!proposals || proposals.length === 0) ? (
                 <p className="text-gray-600 dark:text-gray-400 text-center">No proposals available.</p>
             ) : (
                 <ul className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -71,3 +71,4 @@ export default function ProposalList({ proposals, onSelect }: ProposalListProps)
         </div>
     );
 }
+

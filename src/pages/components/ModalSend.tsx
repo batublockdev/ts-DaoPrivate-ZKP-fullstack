@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useConnect, useDisconnect, useWatchContractEvent, useChainId, useConfig, useAccount, useWriteContract, useWaitForTransactionReceipt, } from 'wagmi'
 import { injected } from 'wagmi/connectors'
-import { chainToAddress, ContractAbi } from '../constants';
+import { chainToAddress, ContractAbi } from '../../constants';
 import { useRouter } from "next/router";
 import { getEthersProvider } from '../../Ether-Wagmi';
 import { formatEther, ethers, parseEther } from 'ethers';

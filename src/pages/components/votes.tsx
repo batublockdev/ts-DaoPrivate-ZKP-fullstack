@@ -8,14 +8,14 @@ interface PendingVote {
 interface RevealProgressTableProps {
     totalVotes: number;
     revealedVotes: number;
-    pendingVotes: PendingVote[];
+    pendingVotes?: PendingVote[]; // now optional
     onRevealMany: (voters: string[]) => void;
 }
 
 export default function RevealProgressTable({
     totalVotes,
     revealedVotes,
-    pendingVotes,
+    pendingVotes = [],
     onRevealMany,
 }: RevealProgressTableProps) {
     const [selected, setSelected] = useState<string[]>([]);
@@ -75,7 +75,7 @@ export default function RevealProgressTable({
                     </tr>
                 </thead>
                 <tbody className="text-gray-800 dark:text-gray-200">
-                    {pendingVotes.length === 0 ? (
+                    {!pendingVotes || pendingVotes.length === 0 ? (
                         <tr>
                             <td colSpan={3} className="text-center px-6 py-4">
                                 All votes revealed 🎉

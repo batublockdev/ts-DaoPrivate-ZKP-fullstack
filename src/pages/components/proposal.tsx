@@ -5,7 +5,7 @@ import RevealModal from "./RevealModal"; // Adjust the import path as necessary
 import ActionsModal from "./ModalSend"; // Adjust the import path as necessary
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { chainToAddress, ContractAbi } from '../constants';
+import { chainToAddress, ContractAbi } from '../../constants';
 import { useWatchContractEvent, useChainId, useConfig, useAccount } from 'wagmi';
 import { getEthersProvider } from '../../Ether-Wagmi';
 import { formatEther, ethers, parseEther } from 'ethers';
@@ -40,8 +40,10 @@ export default function Page() {
 
     const router = useRouter();
     const { id } = router.query;
-    const VotingInfo = JSON.parse(localStorage.getItem("ProposalsVoted") || "{}");
-
+    let VotingInfo: any[];
+    if (typeof window !== "undefined") {
+        VotingInfo = JSON.parse(localStorage.getItem("ProposalsVoted") || "{}");
+    }
     type ProposalStatus =
         | "Pending"
         | "Active"
@@ -63,7 +65,7 @@ export default function Page() {
         status: ProposalStatus;
         createdAt: string;
         deadline: string;
-        votes: {
+        votes?: {
             yes: number;
             no: number;
             abstain: number;

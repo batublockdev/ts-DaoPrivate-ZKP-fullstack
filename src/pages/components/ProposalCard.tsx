@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useRouter } from "next/router";
 
 type ProposalStatus =
@@ -19,7 +19,7 @@ interface ProposalInfo {
     status: ProposalStatus;
     createdAt: string;
     deadline: string;
-    votes: {
+    votes?: {
         yes: number;
         no: number;
         abstain: number;
@@ -52,11 +52,19 @@ interface Props {
 
 const ProposalCard: React.FC<Props> = ({ proposal, ready, onVote, onReveal, hasVoted, hasReveal, onCancel, onExecute }) => {
     const router = useRouter();
+    const { yesPercent, noPercent, abstainPercent, yesTotal, noTotal, abstainTotoal } = useMemo(() => {
+        const safeVotes = proposal?.votes ?? { yes: 0, no: 0, abstain: 0 };
 
-    const totalVotes = proposal.votes.yes + proposal.votes.no + proposal.votes.abstain || 1;
-    const yesPercent = (proposal.votes.yes / totalVotes) * 100;
-    const noPercent = (proposal.votes.no / totalVotes) * 100;
-    const abstainPercent = (proposal.votes.abstain / totalVotes) * 100;
+        const totalVotes = Math.max(safeVotes.yes + safeVotes.no + safeVotes.abstain, 1);
+        return {
+            yesPercent: (safeVotes.yes / totalVotes) * 100,
+            noPercent: (safeVotes.no / totalVotes) * 100,
+            abstainPercent: (safeVotes.abstain / totalVotes) * 100,
+            yesTotal: safeVotes.yes,
+            noTotal: safeVotes.no,
+            abstainTotoal: safeVotes.abstain,
+        };
+    }, [proposal]);
     if (!ready) {
         return (
             <div className="relative w-[80%] min-h-[70vh] mx-auto p-10 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800">
@@ -64,7 +72,13 @@ const ProposalCard: React.FC<Props> = ({ proposal, ready, onVote, onReveal, hasV
             </div>
         );
     }
-
+    if (!proposal) {
+        return (
+            <div className="p-4 text-center text-gray-500">
+                Proposal data is not available.
+            </div>
+        );
+    }
     return (
         <div className="relative w-[80%] min-h-[70vh] mx-auto p-10 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800">
             <button
@@ -128,9 +142,9 @@ const ProposalCard: React.FC<Props> = ({ proposal, ready, onVote, onReveal, hasV
             {["Succeeded", "Defeated", "Executed", "Queued", "Expired"].includes(proposal.status) && (
                 <>
                     <div className="space-y-4 mb-8 mt-6">
-                        <VoteBar label="Yes" percent={yesPercent} count={proposal.votes.yes} color="green" />
-                        <VoteBar label="No" percent={noPercent} count={proposal.votes.no} color="red" />
-                        <VoteBar label="Abstain" percent={abstainPercent} count={proposal.votes.abstain} color="gray" />
+                        <VoteBar label="Yes" percent={yesPercent} count={yesTotal} color="green" />
+                        <VoteBar label="No" percent={noPercent} count={noTotal} color="red" />
+                        <VoteBar label="Abstain" percent={abstainPercent} count={abstainTotoal} color="gray" />
                     </div>
                     <p className="text-sm text-gray-500 italic mt-4">
                         {proposal.status === "Queued" &&

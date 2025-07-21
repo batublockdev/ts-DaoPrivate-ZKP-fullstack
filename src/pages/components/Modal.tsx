@@ -5,7 +5,7 @@ import { CreateCommitment } from "../../utils/makletree"; // Adjust the import p
 import { useConnect, useDisconnect, useWatchContractEvent, useChainId, useConfig, useAccount, useWriteContract, useWaitForTransactionReceipt, } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 import { type UseConnectReturnType } from 'wagmi'
-import { chainToAddress, ContractAbi } from '../constants';
+import { chainToAddress, ContractAbi } from '../../constants';
 import { useRouter } from "next/router";
 
 
@@ -155,27 +155,30 @@ export default function SendModal({ isOpen, vote, proposalId, onClose }: SendMod
             return;
         }
         setError("");
-        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        if (typeof window !== "undefined") {
+            const user = JSON.parse(localStorage.getItem("user") || "{}");
+            const updatedInputDB = {
+                root: "",
+                username: user.id,
+                password: password,
+                vote: vote,
+                Nullfier: "",
+                pathElements: [],
+                pathIndices: []
+            };
+            console.log(updatedInputDB);
+            setCurrentScreen(1);
+            setCurrentStep(1);
+            const dataCommitment = await CreateCommitment(updatedInputDB.username, updatedInputDB.vote, updatedInputDB.password)
+            setCommitmentData({ Commiment: dataCommitment.commitment, Nullfier: dataCommitment.nullifierHash });
+            await sleep(2000); // Wait 2 seconds
+
+            setCurrentScreen(2);
+            setCurrentStep(2);
+        }
 
 
-        const updatedInputDB = {
-            root: "",
-            username: user.id,
-            password: password,
-            vote: vote,
-            Nullfier: "",
-            pathElements: [],
-            pathIndices: []
-        };
-        console.log(updatedInputDB);
-        setCurrentScreen(1);
-        setCurrentStep(1);
-        const dataCommitment = await CreateCommitment(updatedInputDB.username, updatedInputDB.vote, updatedInputDB.password)
-        setCommitmentData({ Commiment: dataCommitment.commitment, Nullfier: dataCommitment.nullifierHash });
-        await sleep(2000); // Wait 2 seconds
 
-        setCurrentScreen(2);
-        setCurrentStep(2);
 
     };
 

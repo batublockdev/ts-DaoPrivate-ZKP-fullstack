@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { chainToAddress, ContractAbi } from '../constants';
+import { chainToAddress, ContractAbi } from '../../constants';
 import { useWatchContractEvent, useChainId, useConfig, useAccount } from 'wagmi';
 import { getEthersProvider } from '../../Ether-Wagmi';
 import { formatEther, ethers, parseEther } from 'ethers';
@@ -26,10 +26,10 @@ export default function Header({ title = "PrivateDao", }) {
 
             const contract = new ethers.Contract(addressContract, ContractAbi, provider)
 
-            const user = JSON.parse(localStorage.getItem("user") || "{}");
+            let user;
 
             if (typeof window !== "undefined") {
-                const user = JSON.parse(localStorage.getItem("user") || "{}");
+                user = JSON.parse(localStorage.getItem("user") || "{}");
                 setName(user.name || "");
             }
             const queryString = new URLSearchParams({
