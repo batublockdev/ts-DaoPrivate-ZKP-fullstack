@@ -8,11 +8,12 @@ const LoginForm = () => {
 
     let data;
     const router = useRouter();
+    const [loading, setLoading] = useState(false);
 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log(username, password);
+        setLoading(true);
         try {
             const response = await fetch("/api/login", {
                 method: "POST",
@@ -29,7 +30,8 @@ const LoginForm = () => {
             setdatax(data);
         } catch (error) {
             console.error("Error saving proof:", error);
-            alert("❌ Something went wrong.");
+        } finally {
+            setLoading(false); // ✅ Stop loading
         }
 
     };
@@ -49,6 +51,27 @@ const LoginForm = () => {
         <div className="min-h-screen bg-gray-100 dark:bg-black flex flex-col items-center justify-center gap-10">
 
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome Back!</h1>
+            {loading && (
+                <div className="flex justify-center items-center mb-4">
+                    <svg className="animate-spin h-6 w-6 text-blue-600 dark:text-blue-300" viewBox="0 0 24 24">
+                        <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                        />
+                        <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                        />
+                    </svg>
+                    <span className="ml-2 text-blue-600 dark:text-blue-300">Logging in...</span>
+                </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4 p-6 bg-white dark:bg-gray-900 rounded-xl shadow-md w-full max-w-md mx-auto">
                 <h2 className="text-xl font-semibold text-center text-gray-800 dark:text-white">Login</h2>
                 <input
@@ -80,6 +103,8 @@ const LoginForm = () => {
                 >
                     Don't have an account? Register
                 </button>
+
+
             </form>
         </div>
     );
