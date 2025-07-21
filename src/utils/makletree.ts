@@ -283,7 +283,7 @@ export async function GetIndex(commiment: string, proposalId: string | string[] 
         const queryString = new URLSearchParams({
             proposal: proposalId,
         }).toString();
-        const response = await fetch(`https://ts-dao-private-zkp-fullstack-2vmujgcai-batublockdevs-projects.vercel.app/api/dbtree?${queryString}`, {
+        const response = await fetch(`/api/dbtree?${queryString}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
