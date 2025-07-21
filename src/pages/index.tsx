@@ -1,5 +1,4 @@
-import ZkForm from "./components/form";
-import Homex from "./components/Home";
+import Homex from "./components/Login";
 import { useState } from "react";
 
 export default function Home() {

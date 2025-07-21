@@ -5,7 +5,7 @@ interface ProposalInfo {
     title: string;
     status: ProposalStatus;
     proposer: string;
-    deadline: string;
+    blockEnd: string;
 }
 
 type ProposalStatus =
@@ -55,7 +55,7 @@ export default function ProposalList({ proposals, onSelect }: ProposalListProps)
                                 <div>
                                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{proposal.title}</h3>
                                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                                        By {proposal.proposer} · Deadline: {proposal.deadline}
+                                        By {proposal.proposer} · Deadline: {proposal.blockEnd}
                                     </p>
                                 </div>
                                 <span

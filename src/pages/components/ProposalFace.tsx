@@ -22,7 +22,7 @@ interface Proposal {
     title: string;
     proposer: string;
     status: ProposalStatus;
-    deadline: string;
+    blockEnd: string;
 
 }
 
@@ -30,7 +30,8 @@ interface Proposal {
 export default function HomePage() {
     const router = useRouter();
     const [proposals, setProposals] = useState<Proposal[]>([]);
-    const chainId = 31337;
+    const { chain } = useAccount();
+    const chainId = 11155111;
     const config = useConfig();
     const addressContract = chainToAddress[chainId]['address'] as `0x${string}`;
 
@@ -53,14 +54,14 @@ export default function HomePage() {
 
             });
             const datax = await response2.json();
-            console.log("Proof gotten successfully:",);
+            console.log("Proposal gotten",);
             console.log(datax.proposals);
             for (let i = 0; i < datax.proposals.length; i++) {
                 const proposal = datax.proposals[i];
                 const block = datax.proposals[i].end_block - datax.proposals[i].start_block;
                 const estimatedSeconds = block * 1; // ≈ 9744 seconds
                 const estimatedDate = new Date(Date.now() + estimatedSeconds * 1000);
-
+                console.log(BigInt(proposal.id));
                 const proposalStatus = await contract.state(BigInt(proposal.id));
                 let status: ProposalStatus;
                 switch (Number(proposalStatus)) {
@@ -100,7 +101,7 @@ export default function HomePage() {
                     title: proposal.description,
                     proposer: proposal.proposer,
                     status: status as ProposalStatus,
-                    deadline: estimatedDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+                    blockEnd: proposal.end_block.toString()
                 }]);
             }
         };

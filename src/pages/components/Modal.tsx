@@ -234,6 +234,8 @@ export default function SendModal({ isOpen, vote, proposalId, onClose }: SendMod
                         setStatus("idle");
                         setPassword("");
                         setConfirm("");
+                        disconnect();
+
                     }}
                     className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl"
                 >
@@ -340,6 +342,8 @@ export default function SendModal({ isOpen, vote, proposalId, onClose }: SendMod
                                     setPassword("");
                                     setConfirm("");
                                     setError("");
+                                    disconnect();
+
                                     router.push("Home");
                                 }}
                                 className="mt-4 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg font-medium transition"

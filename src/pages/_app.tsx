@@ -11,7 +11,7 @@ export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
   // Define routes where layout should be hidden
-  const hideLayout = ["/components/Login", "/components/Register"].includes(router.pathname);
+  const hideLayout = ["/components/Login", "/", "/components/Register"].includes(router.pathname);
 
   return (
     <Providers>

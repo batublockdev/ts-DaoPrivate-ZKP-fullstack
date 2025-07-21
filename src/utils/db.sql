@@ -3,15 +3,15 @@ psql -U me -d zkdb -h localhost
 
 CREATE TABLE proof_table (
     id SERIAL PRIMARY KEY,
-    proposal_id NUMERIC NOT NULL,
-    field1 NUMERIC NOT NULL,
-    field2 NUMERIC NOT NULL,
-    field3 NUMERIC NOT NULL,
-    field4 NUMERIC NOT NULL,
-    field5 NUMERIC NOT NULL,
-    field6 NUMERIC NOT NULL,
-    field7 NUMERIC NOT NULL,
-    field8 NUMERIC NOT NULL,
+    proposal_id TEXT NOT NULL,
+    field1 TEXT NOT NULL,
+    field2 TEXT NOT NULL,
+    field3 TEXT NOT NULL,
+    field4 TEXT NOT NULL,
+    field5 TEXT NOT NULL,
+    field6 TEXT NOT NULL,
+    field7 TEXT NOT NULL,
+    field8 TEXT NOT NULL,
     Transation_hash TEXT NOT NULL,
     sended BOOLEAN NOT NULL DEFAULT FALSE
 );
@@ -61,7 +61,7 @@ CREATE TABLE users_table (
 -- Table 2: publicdata_table with large numeric fields
 CREATE TABLE publicdata_table (
     id SERIAL PRIMARY KEY,
-    nullfier NUMERIC NOT NULL,
+    nullfier TEXT NOT NULL,
     vote INTEGER NOT NULL CHECK (vote IN (0, 1, 2)),
     proof_table_id INTEGER NOT NULL REFERENCES proof_table(id) ON DELETE CASCADE
 );
@@ -70,7 +70,7 @@ CREATE TABLE publicdata_table (
 CREATE TABLE makletree_commitments_table (
     id SERIAL PRIMARY KEY,
     commitment TEXT NOT NULL,
-    proof_table_id INTEGER NOT NULL REFERENCES proof_table(proposal_id) ON DELETE CASCADE
+    proof_table_id TEXT NOT NULL REFERENCES proof_table(proposal_id) ON DELETE CASCADE
 );
 /**
 WE NEED TI CHANGE NUMBERIC DATAS BY TEXT

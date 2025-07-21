@@ -85,8 +85,8 @@ const ProposalCard: React.FC<Props> = ({ proposal, ready, onVote, onReveal, hasV
 
             <div className="text-sm text-gray-600 dark:text-gray-400 mb-4 space-y-1">
                 <p><strong>Proposer:</strong> {proposal.proposer}</p>
-                <p><strong>Created:</strong> {proposal.createdAt}</p>
-                <p><strong>Deadline:</strong> {proposal.deadline}</p>
+                <p><strong>Block start:</strong> {proposal.createdAt}</p>
+                <p><strong>Block end:</strong> {proposal.deadline}</p>
             </div>
 
             {/* Voting Phase */}

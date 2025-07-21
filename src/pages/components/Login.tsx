@@ -39,7 +39,7 @@ const LoginForm = () => {
             console.log("Token received:", datax.data);
             localStorage.setItem("token", datax.data);
             localStorage.setItem("user", JSON.stringify(datax.user));
-            router.push("Home");
+            router.push("/components/Home");
         }
     }, [datax]);
 

@@ -11,7 +11,7 @@ export default function Header({ title = "PrivateDao", }) {
     const [name, setName] = useState("");
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const chainId = 31337;
+    const chainId = 11155111;
     const config = useConfig();
     const addressContract = chainToAddress[chainId]['address'] as `0x${string}`;
 

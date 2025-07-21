@@ -53,7 +53,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         if (response.rows.length === 0) {
             try {
                 const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
-                const contractAddress = '0x0165878A594ca255338adfa4d48449f69242Eb8F';
+                const contractAddress = '0x92f05E4fd0De6998a750CeBcf9eafecf00F0C0A5';
 
                 // Replace this with your contract's ABI
 

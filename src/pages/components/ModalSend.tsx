@@ -258,6 +258,7 @@ export default function SendProofModal({ isOpen, funtionName, dataSend, onClose,
                         setStatus("idle");
                         setPassword("");
                         setConfirm("");
+                        disconnect();
                     }}
                     className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl"
                 >
@@ -310,9 +311,9 @@ export default function SendProofModal({ isOpen, funtionName, dataSend, onClose,
                     ) : currentScreen === 1 ? (
                         <div className="space-y-4 text-center">
                             <div className="text-3xl">🎉</div>
-                            <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Vote Submitted!</h3>
+                            <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Nice!</h3>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                                Zero-knowledge votes were successfully taken in the DAO. Thank you for participating in the private DAO.
+                                Thank you for participating in the private DAO.
                             </p>
                             <button
                                 onClick={() => {
@@ -323,6 +324,8 @@ export default function SendProofModal({ isOpen, funtionName, dataSend, onClose,
                                     setPassword("");
                                     setConfirm("");
                                     setError("");
+                                    disconnect();
+
                                     router.push("Home");
                                 }}
                                 className="mt-4 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg font-medium transition"

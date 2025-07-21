@@ -23,7 +23,7 @@ export default function Page() {
     const [hasVoted, sethasVoted] = useState<boolean>(false);
     const [hasReveal, sethasReveal] = useState<boolean>(false);
     const [ready, setReady] = useState<boolean>(false);
-    const chainId = 31337;
+    const chainId = 11155111;
     const config = useConfig();
     const addressContract = chainToAddress[chainId]['address'] as `0x${string}`;
     const [dataProposal, setDataProposal] = useState<{
@@ -54,7 +54,7 @@ export default function Page() {
         | "Revealing";
 
     type funName = "cancel" | "execute";
-    let funtionName: funName = "cancel";
+    const [funtionName, setFuntionName] = useState<funName>("cancel");
 
     const [proposal, setProposal] = useState<{
         title: string;
@@ -178,8 +178,8 @@ export default function Page() {
                         description: data.proposals[0].description,
                         proposer: data.proposals[0].proposer,
                         status: status as ProposalStatus,
-                        createdAt: new Date(data.proposals[0].start_block * 1000).toISOString().split('T')[0],
-                        deadline: new Date(data.proposals[0].end_block * 1000).toISOString().split('T')[0],
+                        createdAt: data.proposals[0].start_block.toString(),
+                        deadline: data.proposals[0].end_block.toString(),
                         votes: {
                             yes: Number(forVotes) / 1e18,
                             no: Number(againstVotes) / 1e18,
@@ -263,11 +263,13 @@ export default function Page() {
         setShowRevealModal(true);
     }
     const onCancel = () => {
-        funtionName = "cancel";
+        console.log("Canceling proposal:", id);
+        setFuntionName("cancel");
         setShowActionsModal(true);
     }
     const onExecute = () => {
-        funtionName = "execute";
+        console.log("Executing proposal:", id);
+        setFuntionName("execute");
         setShowActionsModal(true);
     }
     if (!ready)
