@@ -9,7 +9,7 @@ export const chainToAddress: ContractsConfig = {
         address: '0x0165878A594ca255338adfa4d48449f69242Eb8F'
     },
     11155111: {
-        address: '0x92f05E4fd0De6998a750CeBcf9eafecf00F0C0A5'
+        address: '0xa8E2CBE69e098ac9D1053b07089403F94C07416D'
     }
 }
 

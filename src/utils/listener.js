@@ -12,7 +12,7 @@ console.log("📡 Connecting URL:", process.env.RPC_URL);
 
 // Configs
 const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
-const contractAddress = '0x92f05E4fd0De6998a750CeBcf9eafecf00F0C0A5';
+const contractAddress = '0xa8E2CBE69e098ac9D1053b07089403F94C07416D';
 
 // Replace this with your contract's ABI
 
