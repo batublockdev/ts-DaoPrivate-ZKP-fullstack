@@ -38,7 +38,7 @@ export default function HomePage() {
     useEffect(() => {
         const fetchData = async () => {
             // your async code here, e.g.:
-            const provider = new JsonRpcProvider("https://eth-sepolia.g.alchemy.com/v2/GlKgVU5f7NyjZdNqlecry81LnMyloo5E")
+            const provider = new JsonRpcProvider("https://eth-sepolia.g.alchemy.com/v2/Kxrl2esuvfth6B-gfktr-")
 
             if (!provider) throw new Error('No provider found')
 
