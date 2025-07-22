@@ -59,18 +59,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const events = await contract.queryFilter(filter, Number(startBlock), Number(endBlock));
 
         console.log(`📜 Found ${events.length} voteSummited events for proposal ${proposalIdToTrack}.`);
-        events.forEach(async (event: typeof Log, i: number) => {
+        for (const [i, event] of events.entries()) {
             const data = {
                 proposalId: event.args?.proposalId?.toString(),
                 commitment: event.args?.commitment?.toString(),
                 index: event.args?.index?.toString()
             };
             if (data.proposalId && data.commitment && data.index) {
+                console.log("Starting so save", data.index);
                 await saveCommitmentToDb(data.proposalId, data.commitment, data.index);
             } else {
                 console.warn(`⚠️ Skipping malformed event at index ${i}`);
             }
-        });
+        }
+
 
 
         console.log("✅ Finished syncing vote commitments.");
