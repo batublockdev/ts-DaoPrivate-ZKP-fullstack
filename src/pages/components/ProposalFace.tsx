@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { chainToAddress, ContractAbi } from '../../constants';
 import { useWatchContractEvent, useChainId, useConfig, useAccount } from 'wagmi';
 import { getEthersProvider } from '../../Ether-Wagmi';
-import { formatEther, ethers, parseEther } from 'ethers';
+import { formatEther, ethers, parseEther, JsonRpcProvider } from 'ethers';
 type ProposalStatus =
     | "Pending"
     | "Active"
@@ -38,7 +38,8 @@ export default function HomePage() {
     useEffect(() => {
         const fetchData = async () => {
             // your async code here, e.g.:
-            const provider = getEthersProvider(config)
+            const provider = new JsonRpcProvider("https://eth-sepolia.g.alchemy.com/v2/GlKgVU5f7NyjZdNqlecry81LnMyloo5E")
+
             if (!provider) throw new Error('No provider found')
 
             const contract = new ethers.Contract(addressContract, ContractAbi, provider)
