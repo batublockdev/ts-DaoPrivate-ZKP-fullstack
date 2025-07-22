@@ -190,7 +190,7 @@ export async function GetPathFromIndex(index: number, proposalId: string | strin
         const queryString = new URLSearchParams({
             proposal: proposalId,
         }).toString();
-        const response = await fetch(`https://ts-dao-private-zkp-fullstack-2vmujgcai-batublockdevs-projects.vercel.app/api/dbtree?${queryString}`, {
+        const response = await fetch(`https://ts-dao-private-zkp-fullstack.vercel.app/api/dbtree?${queryString}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
