@@ -139,5 +139,4 @@ Access the frontend application here: [DAO Voting Web App](https://ts-dao-privat
 
 The core contracts used in this project:
 
-- [`VotingVerifier.sol`](./contracts/VotingVerifier.sol): Verifies zero-knowledge proofs generated off-chain.
-- [`PrivateGovernor.sol`](./contracts/PrivateGovernor.sol): Handles proposal creation, state tracking, and on-chain vote tallying using verified ZKPs.
+- [`VotingVerifier.sol`](https://github.com/batublockdev/privateDAO-ZKproof): Verifies zero-knowledge proofs generated off-chain.
