@@ -1,40 +1,143 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# 🗳️ Private DAO Voting with ZKPs
 
-## Getting Started
+A fullstack DAO application that allows users to vote **privately** using a password-authenticated zero-knowledge proof system. Built with **TypeScript**, **PostgreSQL**, and **Solidity** smart contracts. Users create private votes that are never revealed, yet are verifiably counted on-chain using zk-SNARKs.
 
-First, run the development server:
+---
+
+## 🔒 How It Works
+
+1. **User Registration**  
+   Users register with a unique identifier (e.g., email or wallet address) and a **password**.
+
+2. **Vote Commitment**  
+   When voting, the user's vote and password are **hashed** with their user ID and stored off-chain (PostgreSQL).
+
+3. **ZK Proof Generation**  
+   The client generates a **zero-knowledge proof** (e.g., using Circom + SnarkJS) based on:
+   - User ID
+   - Password
+   - Vote option
+
+4. **On-chain Verification**  
+   The ZK proof is submitted to a Solidity smart contract. The contract **verifies** the proof without revealing the vote content.
+
+5. **Tally**  
+   Only valid, unique votes are counted, ensuring privacy and integrity.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer       | Tech                                                                 |
+|-------------|----------------------------------------------------------------------|
+| Frontend    | Next.js + React + Tailwind                                           |
+| ZK Proofs   | Circom + SnarkJS (Groth16 proving system)                            |
+| Smart Contracts | Solidity (custom Governor-style voting contract)                 |
+| Backend     | Node.js + Express (API layer)                                        |
+| Database    | PostgreSQL (for storing vote commitments and hashed credentials)     |
+
+---
+
+## 📦 Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/your-username/private-dao-voting.git
+cd private-dao-voting
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Setup
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+Create a `.env` file:
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/dao
+NEXT_PUBLIC_CONTRACT_ADDRESS=0xYourContractAddress
+PROVER_KEY_PATH=./zk/proving_key.zkey
+VERIFIER_CONTRACT_PATH=./contracts/Verifier.sol
+```
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ▶️ Usage
 
-## Learn More
+### Start Local Dev
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+### Compile ZK Circuits
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+cd zk
+circom vote.circom --r1cs --wasm --sym
+snarkjs groth16 setup vote.r1cs pot15_final.ptau vote_0000.zkey
+snarkjs zkey contribute vote_0000.zkey vote_final.zkey
+snarkjs zkey export verificationkey vote_final.zkey verification_key.json
+```
 
-## Deploy on Vercel
+### Deploy Contracts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+pnpm hardhat compile
+pnpm hardhat deploy --network sepolia
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+---
+
+## ✅ Features
+
+- 🗳️ Fully private voting with password-authenticated ZK proofs
+- 🔐 Secure hash-based commitment scheme
+- 🧠 No vote ever stored or revealed on-chain
+- 🧾 Audit-ready PostgreSQL storage of encrypted user activity
+- 🌐 Web interface for proof generation & submission
+- 🪙 DAO-compatible on-chain proposal system
+
+---
+
+## 📁 Project Structure
+
+```
+/contracts         --> Solidity contracts
+/frontend          --> Next.js app
+/backend           --> Node.js server & DB handlers
+/zk                --> Circom circuit, keys & proof scripts
+/prisma            --> PostgreSQL schema
+```
+
+---
+
+## 🔮 Roadmap
+
+- [ ] Add Merkle Tree membership checks for registered voters
+- [ ] Add support for Tornado-style nullifier system (to prevent double-voting)
+- [ ] Full integration with DAO proposal lifecycle (Create -> Vote -> Execute)
+
+---
+
+## 👥 Contributors
+
+- batublockdev — Project Lead & Fullstack Developer  
+
+
+---
+
+## 📜 License
+
+MIT License
+---
+
+## 🌐 Web App
+
+Access the frontend application here: [DAO Voting Web App](https://ts-dao-private-zkp-fullstack.vercel.app/)
+
+---
+
+## 📄 Smart Contracts
+
+The core contracts used in this project:
+
+- [`VotingVerifier.sol`](./contracts/VotingVerifier.sol): Verifies zero-knowledge proofs generated off-chain.
+- [`PrivateGovernor.sol`](./contracts/PrivateGovernor.sol): Handles proposal creation, state tracking, and on-chain vote tallying using verified ZKPs.
